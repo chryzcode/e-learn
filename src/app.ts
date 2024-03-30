@@ -8,6 +8,7 @@ const app = express();
 
 const start = async () => {
   try {
+    await mongoose.connect(process.env.MONGO_URI as string);
     app.listen(PORT, () => {
       console.log(`server is running on port ${PORT}`);
     });
