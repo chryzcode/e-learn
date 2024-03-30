@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import { UnauthenticatedError } from "../errors/index";
 import { User } from "../models/user";
 
+const JWT_SECRET = process.env.JWT_SECRET as any;
+
 export default async (req: any, res: Response, next: any) => {
   // check header
   const authHeader = req.headers.authorization;
@@ -12,8 +14,9 @@ export default async (req: any, res: Response, next: any) => {
   const user = await User.findOne({ token: token, verified: true });
   if (user) {
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      const payload: any = jwt.verify(token, JWT_SECRET);
       // attach the user to the job routes
+
       req.user = { userId: payload.userId, firstName: payload.firstName };
 
       next();
