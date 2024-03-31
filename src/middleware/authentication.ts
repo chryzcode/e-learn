@@ -4,7 +4,7 @@ import { User } from "../models/user";
 
 const JWT_SECRET = process.env.JWT_SECRET as any;
 
-export default async (req: any, res: Response, next: any) => {
+export default async (req: any, res: any, next: any) => {
   // check header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer")) {
