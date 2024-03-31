@@ -11,17 +11,20 @@
   "author": "chryzcode",
   "license": "ISC",
   "dependencies": {
-    "@types/mongoose": "^5.11.97",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "http-status-codes": "^2.3.0",
-    "mongoose": "^8.2.4"
-  },
-  "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
-    "ts-node-dev": "^2.0.0",
+    "@types/mongoose": "^5.11.97",
+    "@types/nodemailer": "^6.4.14",
+    "@types/uuid": "^9.0.8",
+    "cloudinary": "^2.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "http-status-codes": "^2.3.0",
+    "mongoose": "^8.2.4",
     "typescript": "^5.4.3"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0"
   }
 }
