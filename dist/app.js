@@ -17,6 +17,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const express_1 = __importDefault(require("express"));
 const PORT = process.env.PORT || 8000;
 const app = (0, express_1.default)();
+app.use(express_1.default.json());
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(process.env.MONGO_URI);
