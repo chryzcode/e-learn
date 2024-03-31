@@ -6,6 +6,9 @@ const PORT = process.env.PORT || 8000;
 
 const app = express();
 
+app.use(express.json());
+
+
 const start = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI as string);
