@@ -16,7 +16,7 @@ const linkVerificationtoken = generateToken(uniqueID);
 
 export const signUp = async (req: any, res: any) => {
   const user: any = await User.create({ ...req.body });
-  
+
   const maildata = {
     from: process.env.Email_User,
     to: user.email,
@@ -47,7 +47,7 @@ export const signIn = async (req: any, res: any) => {
   if (!email || !password) {
     throw new BadRequestError(`email and password field is required`);
   }
-  const user: any = User.findOne({ email: email });
+  const user: any = await User.findOne({ email: email });
   if (!user) {
     throw new NotFoundError(`User with email not found`);
   }
@@ -124,15 +124,13 @@ export const getUser = async (req: any, res: any) => {
 
 export const updateUser = async (req: any, res: any) => {
   const { userId } = req.user;
-  const user = await User.findOne({ _id: userId });
+  var user = await User.findOne({ _id: userId });
   if (!user) {
     throw new NotFoundError(`User with id ${userId} does not exist`);
   }
-  if (!user.avatar && !req.body.avatar) {
-    throw new BadRequestError("The image field is required");
-  }
 
   if (req.body.avatar) {
+    console.log("hi");
     try {
       const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
         folder: "E-Learn/User/Avatar/",
@@ -145,7 +143,7 @@ export const updateUser = async (req: any, res: any) => {
     }
   }
 
-  await User.findOneAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
+  user = await User.findOneAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
 
   res.status(StatusCodes.OK).json({ user });
 };
