@@ -48,11 +48,10 @@ userSchema.pre("save", async function () {
 });
 
 const JWT_SECRET = process.env.JWT_SECRET as any;
-const JWT_LIFETIME = process.env.JWT_SECRET as any;
 
 userSchema.methods.createJWT = function () {
   const token = jwt.sign({ userId: this._id, fullName: this.fullName }, JWT_SECRET, {
-    expiresIn: JWT_LIFETIME,
+    expiresIn: "27h" ,
   });
   this.token = token;
   return token;
@@ -63,6 +62,5 @@ userSchema.methods.comparePassword = async function (candidatePassword: any) {
   return isMatch;
 };
 
-const User = mongoose.model("User", userSchema);
+export const User = mongoose.model("User", userSchema);
 
-export { User };

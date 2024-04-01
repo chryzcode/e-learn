@@ -15,7 +15,8 @@ const domain = process.env.DOMAIN || "http://localhost:8000";
 const linkVerificationtoken = generateToken(uniqueID);
 
 export const signUp = async (req: any, res: any) => {
-  const user: any = User.create({ ...req.body });
+  const user: any = await User.create({ ...req.body });
+  
   const maildata = {
     from: process.env.Email_User,
     to: user.email,

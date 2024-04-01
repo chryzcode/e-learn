@@ -16,7 +16,7 @@ import authenticateUser from "../middleware/authentication";
 
 const router = express.Router();
 
-router.route("/auth/signUp").post(signUp);
+router.route("/auth/signup").post(signUp);
 router.route("/auth/sigin").post(signIn);
 router.route("/profile/:userId").get(getUser);
 router.route("/current-user").get(authenticateUser, currentUser);

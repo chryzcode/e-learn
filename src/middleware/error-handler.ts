@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
+import { Request, Response, NextFunction } from "express";
 
-export default (err: any, req: any, res: any, next: any) => {
+export default (err: any, req: Request, res: Response, next: NextFunction) => {
   const customError = {
     // set default
     statusCode: err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
