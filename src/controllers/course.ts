@@ -18,6 +18,7 @@ export const createCourse = async (req: any, res: any) => {
   }
   try {
     const result = await cloudinary.v2.uploader.upload(req.body.video, {
+      resource_type: "video",
       folder: "E-Learn/Course/Video/",
       use_filename: true,
     });
