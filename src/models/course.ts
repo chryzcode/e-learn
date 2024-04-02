@@ -10,15 +10,30 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: [true, "uploading video is necessary"],
     },
-    amount: {
+    currency: {
+      type: String,
+      enum: ["ngn"],
+      default: "ngn",
+    },
+    price: {
       type: Number,
       default: 0,
+    },
+    free: {
+      type: Boolean,
+      default: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+courseSchema.pre("save", async function () {
+  if (this.price > 1) {
+    this.free = false;
+  }
+});
 
 const courseStudentSchema = new mongoose.Schema({
   student: {
@@ -86,8 +101,16 @@ const courseCommentSchema = new mongoose.Schema(
   }
 );
 
+const courseCategorySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'name field is required']
+  }
+})
+
 export const Course = mongoose.model("Course", courseSchema);
 export const courseStudent = mongoose.model("courseStudent", courseStudentSchema);
 export const courseLike = mongoose.model("courseLike", courseLikeSchema);
 export const courseRating = mongoose.model("courseRating", courseRatingSchema);
 export const courseComment = mongoose.model("courseComment", courseCommentSchema);
+export const courseCategory = mongoose.model("courseCategory", courseCategorySchema);
