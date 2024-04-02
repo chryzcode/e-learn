@@ -130,7 +130,6 @@ export const updateUser = async (req: any, res: any) => {
   }
 
   if (req.body.avatar) {
-    console.log("hi");
     try {
       const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
         folder: "E-Learn/User/Avatar/",

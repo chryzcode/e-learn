@@ -10,15 +10,30 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: [true, "uploading video is necessary"],
     },
-    amount: {
+    currency: {
+      type: String,
+      enum: ["ngn"],
+      default: "ngn",
+    },
+    price: {
       type: Number,
       default: 0,
+    },
+    free: {
+      type: Boolean,
+      default: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+courseSchema.pre("save", async function () {
+  if (this.price > 1) {
+    this.free = false;
+  }
+});
 
 const courseStudentSchema = new mongoose.Schema({
   student: {
