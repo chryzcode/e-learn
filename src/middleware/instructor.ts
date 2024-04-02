@@ -7,6 +7,6 @@ export default async (req: any, res: any, next: any) => {
   if (!user) {
     throw new UnauthenticatedError("Authentication as an instructor invalid");
   }
-  req.user = { userId: user.userId, firstName: user.fullName };
+  req.user = { userId: user.userId, fullName: user.fullName };
   next();
 };
