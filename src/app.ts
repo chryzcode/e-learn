@@ -38,8 +38,10 @@ app.get("/", (req: any, res: any) => {
 });
 
 import userRoute from "./routes/user";
+import courseRoute from "./routes/course"
 
 app.use("/", userRoute);
+app.use("/course", courseRoute);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

@@ -17,7 +17,7 @@ export default async (req: any, res: any, next: any) => {
       const payload: any = jwt.verify(token, JWT_SECRET);
       // attach the user to the job routes
 
-      req.user = { userId: payload.userId, firstName: payload.fullName };
+      req.user = { userId: payload.userId, fullName: payload.fullName };
 
       next();
     } catch (error) {
