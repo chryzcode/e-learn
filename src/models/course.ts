@@ -10,6 +10,11 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: [true, "uploading video is necessary"],
     },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "courseCategory",
+      required: [true, "category field is required"],
+    },
     currency: {
       type: String,
       enum: ["ngn"],
