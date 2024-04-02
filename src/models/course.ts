@@ -101,8 +101,16 @@ const courseCommentSchema = new mongoose.Schema(
   }
 );
 
+const courseCategorySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'name field is required']
+  }
+})
+
 export const Course = mongoose.model("Course", courseSchema);
 export const courseStudent = mongoose.model("courseStudent", courseStudentSchema);
 export const courseLike = mongoose.model("courseLike", courseLikeSchema);
 export const courseRating = mongoose.model("courseRating", courseRatingSchema);
 export const courseComment = mongoose.model("courseComment", courseCommentSchema);
+export const courseCategory = mongoose.model("courseCategory", courseCategorySchema);
