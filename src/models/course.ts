@@ -8,7 +8,7 @@ const courseSchema = new mongoose.Schema(
     },
     video: {
       type: String,
-      required: [true, "uploading video is necessary"],
+      required: [true, "video field is required"],
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,

@@ -185,11 +185,11 @@ export const verifyForgotPasswordToken = async (req: any, res: any) => {
   const token = req.params.token;
   const userId = req.params.userId;
   const secretKey: any = process.env.JWT_SECRET;
-  const { password } = req.body;
+  let { password } = req.body;
   try {
     jwt.verify(token, secretKey);
     const salt = await bcrypt.genSalt(10);
-    await bcrypt.hash(password, salt);
+    password = await bcrypt.hash(password, salt);
     const user = await User.findOneAndUpdate(
       { _id: userId },
       { password: password, token: token },

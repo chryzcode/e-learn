@@ -6,13 +6,13 @@ import { isVideo } from "../utils/mediaType";
 
 export const createCourse = async (req: any, res: any) => {
   req.body.instructor = req.user.userId;
-  const course = await Course.create({ ...req.body });
+
   var category = await courseCategory.findOne({ name: req.body.category });
   if (!category) {
-    await courseCategory.create({ name: req.body.category });
+    category = await courseCategory.create({ name: req.body.category });
   }
-  category = await courseCategory.findOne({ name: req.body.category });
-  req.body.category = category?.id;
+
+  req.body.category = category.id;
   if (isVideo(req.body.video) == false) {
     throw new BadRequestError("Video/ Media type not supported");
   }
@@ -26,5 +26,6 @@ export const createCourse = async (req: any, res: any) => {
     console.error(error);
     throw new BadRequestError("error uploading video on cloudinary");
   }
+  const course = await Course.create({ ...req.body });
   res.status(StatusCodes.CREATED).json({ course });
 };
