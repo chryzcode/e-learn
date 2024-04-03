@@ -91,3 +91,53 @@ export const courseDetail = async (req: any, res: any) => {
   const course = await Course.findOne({ _id: courseId });
   res.status(StatusCodes.OK).json({ course });
 };
+
+export const editCourse = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.params;
+  req.body.instructor = userId;
+  var category = await courseCategory.findOne({ name: req.body.category });
+  if (!category) {
+    category = await courseCategory.create({ name: req.body.category });
+  }
+
+  req.body.category = category.id;
+  if (isVideo(req.body.video) == false) {
+    throw new BadRequestError("Video/ Media type not supported");
+  }
+  try {
+    const result = await cloudinary.v2.uploader.upload(req.body.video, {
+      resource_type: "video",
+      folder: "E-Learn/Course/Video/",
+      use_filename: true,
+    });
+    req.body.video = result.url;
+  } catch (error) {
+    console.error(error);
+    throw new BadRequestError("error uploading video on cloudinary");
+  }
+  const course = await Course.findOneAndUpdate({ _id: courseId, instructor: userId }, req.body, {
+    runValidators: true,
+    new: true,
+  });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does not exist`);
+  }
+  res.status(StatusCodes.OK).json({ course });
+};
+
+export const deleteCourse = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.params;
+  req.body.instructor = userId;
+  const course = await Course.findOneAndDelete({ _id: courseId, instructor: userId });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does not exist`);
+  }
+  if (course.free == true) {
+    await Course.findOneAndDelete({ _id: courseId, instructor: userId });
+    res.status(StatusCodes.OK).json({ success: "course is successfully deleted" });
+  } else {
+    //check if there are student who just paid
+  }
+};
