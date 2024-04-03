@@ -1,5 +1,5 @@
 import cloudinary from "cloudinary";
-import { Course, courseCategory } from "../models/course";
+import { Course, courseCategory, courseStudent } from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isVideo } from "../utils/mediaType";
@@ -37,7 +37,7 @@ export const allCourses = async (req: any, res: any) => {
 };
 
 export const getAnInstructorCourses = async (req: any, res: any) => {
-  const { userId } = req.param;
+  const { userId } = req.params;
   const courses = await Course.find({ instructor: userId });
   res.status(StatusCodes.OK).json({ courses });
 };
@@ -54,11 +54,40 @@ export const courseCategories = async (req: any, res: any) => {
 };
 
 export const filterCourseByCategory = async (req: any, res: any) => {
-  const { categoryId } = req.param;
-  const category = await courseCategory.findOne({ _id: categoryId });
-  if (!category) {
-    throw new 
+  const { categoryId } = req.params;
+  const categoryObj = await courseCategory.findOne({ _id: categoryId });
+  if (!categoryObj) {
+    throw new NotFoundError(`Category with ${categoryId} does not exist`);
   }
-  const courses = course.find({});
-  res.status(StatusCodes.OK).json({ categories });
+  const courses = await Course.find({ category: categoryId });
+  res.status(StatusCodes.OK).json({ courses });
+};
+
+export const freeCourses = async (req: any, res: any) => {
+  const courses = await Course.find({ free: true });
+  res.status(StatusCodes.OK).json({ courses });
+};
+
+export const enrollForCourse = async (req: any, res: any) => {
+  const { courseId } = req.params;
+  const { userId } = req.user;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does nor exist`);
+  }
+  if (course.free == true) {
+    await courseStudent.create({
+      student: userId,
+      course: courseId,
+    });
+    res.status(StatusCodes.OK).json({ success: "enrollment successful" });
+  } else {
+    // payment shit
+  }
+};
+
+export const courseDetail = async (req: any, res: any) => {
+  const { courseId } = req.course;
+  const course = await Course.findOne({ _id: courseId });
+  res.status(StatusCodes.OK).json({ course });
 };
