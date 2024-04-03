@@ -30,3 +30,35 @@ export const createCourse = async (req: any, res: any) => {
   const course = await Course.create({ ...req.body });
   res.status(StatusCodes.CREATED).json({ course });
 };
+
+export const allCourses = async (req: any, res: any) => {
+  const courses = await Course.find({}).sort("createdAt");
+  res.status(StatusCodes.OK).json({ courses });
+};
+
+export const getAnInstructorCourses = async (req: any, res: any) => {
+  const { userId } = req.param;
+  const courses = await Course.find({ instructor: userId });
+  res.status(StatusCodes.OK).json({ courses });
+};
+
+export const instructorCourses = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const courses = await Course.find({ instructor: userId });
+  res.status(StatusCodes.OK).json({ courses });
+};
+
+export const courseCategories = async (req: any, res: any) => {
+  const categories = await courseCategory.find({});
+  res.status(StatusCodes.OK).json({ categories });
+};
+
+export const filterCourseByCategory = async (req: any, res: any) => {
+  const { categoryId } = req.param;
+  const category = await courseCategory.findOne({ _id: categoryId });
+  if (!category) {
+    throw new 
+  }
+  const courses = course.find({});
+  res.status(StatusCodes.OK).json({ categories });
+};
