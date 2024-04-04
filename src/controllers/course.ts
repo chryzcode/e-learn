@@ -1,5 +1,5 @@
 import cloudinary from "cloudinary";
-import { Course, courseCategory, courseStudent } from "../models/course";
+import { Course, courseCategory, courseStudent, courseLike } from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isVideo } from "../utils/mediaType";
@@ -140,4 +140,17 @@ export const deleteCourse = async (req: any, res: any) => {
   } else {
     //check if there are student who just paid
   }
+};
+
+export const likeUnLikeCourse = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.course;
+  const likeCourse = await courseLike.findOne({ student: userId, course: courseId });
+  if (likeCourse) {
+    await courseLike.findOneAndDelete({ student: userId, course: courseId });
+  } else {
+    await courseLike.create({ student: userId, course: courseId });
+  }
+  const courseLikes = (await courseLike.find({ course: courseId })).length;
+  res.status(StatusCodes.OK).json({ courseLikes });
 };

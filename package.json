@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.4",
     "nodemailer": "^6.9.13",
+    "socket.io": "^4.7.5",
     "typescript": "^5.4.3",
     "uuid": "^9.0.1"
   },
