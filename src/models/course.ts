@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema(
   {
+    title: {
+      type: String,
+      required: [true, "title field is required"],
+    },
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -109,9 +113,9 @@ const courseCommentSchema = new mongoose.Schema(
 const courseCategorySchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'name field is required']
-  }
-})
+    required: [true, "name field is required"],
+  },
+});
 
 export const Course = mongoose.model("Course", courseSchema);
 export const courseStudent = mongoose.model("courseStudent", courseStudentSchema);

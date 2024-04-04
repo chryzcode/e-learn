@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { Booking } from "../models/payment";
+import { Payment } from "../models/payment";
+import { Course } from "../models/course";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import stripePackage from "stripe";
 import { StatusCodes } from "http-status-codes";
@@ -8,53 +9,30 @@ let STRIPE_SECRET_KEY: any = process.env.STRIPE_SECRET_KEY;
 const stripe = new stripePackage(STRIPE_SECRET_KEY);
 const DOMAIN = process.env.DOMAIN;
 
-export const createBooking = async (req, res) => {
+export const makeCoursePayment = async (req: any, res: any) => {
   const { userId } = req.user;
-  const user = await User.findOne({ _id: userId });
-  const { listingId } = req.params;
-  req.body.user = user.id;
-  const arrival = new Date(req.body.arrival);
-  const days = req.body.numberOfNights;
-  var departure = new Date(arrival);
-  departure = departure.setDate(arrival.getDate() + days);
-  req.body.departure = departure;
-  const currentDate = new Date();
-
-  var listing =
-    (await Car.findOne({ _id: listingId })) ||
-    (await House.findOne({ _id: listingId })) ||
-    (await Yatch.findOne({ _id: listingId }));
-
-  if (!listing || listing.booked == true) {
-    throw new NotFoundError(
-      `Listing (either house, car or yatch with ${listingId} does not exist) or it has been booked`
-    );
+  const { courseId } = req.params;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course with id ${courseId} does not exist`);
   }
-
-  if (currentDate < listing.dateAvailable) {
-    throw new BadRequestError(`Listing is not available for booking`);
-  }
-  const serviceFee = listing.serviceFee || 0;
-  const cleaningFee = listing.cleaningFee || 0;
-  const taxAmount = listing.tax || 0;
-  const amount = Number(listing.price * days) + serviceFee + cleaningFee;
-  req.body.amount = amount;
-  req.body.listingId = listing.id;
-  var booking = await Booking.create({ ...req.body });
-  const successUrl = `${DOMAIN}/payment/${booking.id}/success`;
-  const cancelUrl = `${DOMAIN}/payment/${booking.id}/cancel`;
-  const guestChargeAmount = (amount * 7) / 100;
+  req.body.student = userId;
+  req.body.course = courseId;
+  req.body.amount = course.price;
+  var payment = await Payment.create({ ...req.body });
+  const successUrl = `${DOMAIN}/payment/${payment.id}/success`;
+  const cancelUrl = `${DOMAIN}/payment/${payment.id}/cancel`;
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"], // Payment method types accepted (e.g., card)
       line_items: [
         {
           price_data: {
-            currency: listing.currency,
+            currency: course.currency,
             product_data: {
-              name: `Travel Leaf Booking Listing`, // Name of your product or service
+              name: `${course.title} payment`, // Name of your product or service
             },
-            unit_amount: (amount + taxAmount + guestChargeAmount) * 100, // Amount in cents
+            unit_amount: course.price * 100, // Amount in cents
           },
           quantity: 1, // Quantity of the product
         },
@@ -68,5 +46,4 @@ export const createBooking = async (req, res) => {
     console.error("Error creating payment link:", error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: "payment link not created" });
   }
-  // await listing.findOneAndUpdate({ dateAvailable: departure, booked: true });
 };
