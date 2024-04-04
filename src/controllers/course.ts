@@ -6,7 +6,7 @@ import { isVideo } from "../utils/mediaType";
 import express from "express";
 import http from "http";
 import { init as initSocket, emitCourseLiked } from "../utils/socket";
-import { makeCoursePayment } from "../controllers/payment";
+import { makeCoursePayment } from "../utils/payment";
 
 const app = express();
 const server = http.createServer(app);
@@ -49,8 +49,8 @@ export const allCourses = async (req: any, res: any) => {
 };
 
 export const getAnInstructorCourses = async (req: any, res: any) => {
-  const { userId } = req.params;
-  const courses = await Course.find({ instructor: userId });
+  const { instructorId } = req.params;
+  const courses = await Course.find({ instructor: instructorId });
   res.status(StatusCodes.OK).json({ courses });
 };
 
@@ -127,6 +127,8 @@ export const editCourse = async (req: any, res: any) => {
       resource_type: "video",
       folder: "E-Learn/Course/Video/",
       use_filename: true,
+      quality: "auto:low", // Set quality to auto:low for automatic compression
+      eager: [{ format: "mp4", video_codec: "h264" }], // Convert to MP4 with H.264 codec for better compression
     });
     req.body.video = result.url;
   } catch (error) {
