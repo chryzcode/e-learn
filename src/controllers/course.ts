@@ -30,6 +30,8 @@ export const createCourse = async (req: any, res: any) => {
       resource_type: "video",
       folder: "E-Learn/Course/Video/",
       use_filename: true,
+      quality: "auto:low", // Set quality to auto:low for automatic compression
+      eager: [{ format: "mp4", video_codec: "h264" }], // Convert to MP4 with H.264 codec for better compression
     });
     req.body.video = result.url;
   } catch (error) {
