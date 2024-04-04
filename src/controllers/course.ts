@@ -6,6 +6,7 @@ import { isVideo } from "../utils/mediaType";
 import express from "express";
 import http from "http";
 import { init as initSocket, emitCourseLiked } from "../utils/socket";
+import { makeCoursePayment } from "../controllers/payment";
 
 const app = express();
 const server = http.createServer(app);
@@ -80,11 +81,11 @@ export const freeCourses = async (req: any, res: any) => {
 };
 
 export const enrollForCourse = async (req: any, res: any) => {
-  const { courseId } = req.params;
   const { userId } = req.user;
+  const { courseId } = req.params;
   const course = await Course.findOne({ _id: courseId });
   if (!course) {
-    throw new NotFoundError(`Course with ${courseId} does nor exist`);
+    throw new NotFoundError(`Course with id ${courseId} does not exist`);
   }
   if (course.free == true) {
     await courseStudent.create({
@@ -93,7 +94,12 @@ export const enrollForCourse = async (req: any, res: any) => {
     });
     res.status(StatusCodes.OK).json({ success: "enrollment successful" });
   } else {
-    // payment shit
+    const payment = await makeCoursePayment(userId, courseId);
+    if (payment) {
+      res.status(StatusCodes.OK).json({ payment });
+    } else {
+      res.status(StatusCodes.BAD_REQUEST).json({ error: "error in generating payment link" });
+    }
   }
 };
 
