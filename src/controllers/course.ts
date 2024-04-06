@@ -108,9 +108,18 @@ export const enrollForCourse = async (req: any, res: any) => {
 };
 
 export const courseDetail = async (req: any, res: any) => {
-  const { courseId } = req.course;
+  const { userId } = req.user;
+  const { courseId } = req.params;
   const course = await Course.findOne({ _id: courseId });
-  res.status(StatusCodes.OK).json({ course });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does not exist`);
+  }
+  const student = await courseStudent.findOne({ student: userId, course: courseId });
+  if (student) {
+    res.status(StatusCodes.OK).json({ access: course });
+  } else {
+    res.status(StatusCodes.OK).json({ noAcesss: course });
+  }
 };
 
 export const editCourse = async (req: any, res: any) => {

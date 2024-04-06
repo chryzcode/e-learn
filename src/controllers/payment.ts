@@ -15,6 +15,9 @@ export const paymentSuccessful = async (req: any, res: any) => {
   if (!payment) {
     throw new NotFoundError(`Payment with id ${paymentId} does not exists`);
   }
+  if (payment.paid == true) {
+    throw new BadRequestError(`payment has been paid already`);
+  }
   const studentCourseObj = await courseStudent.create({
     student: payment.student,
     course: payment.course,
@@ -26,7 +29,7 @@ export const paymentSuccessful = async (req: any, res: any) => {
     from: process.env.Email_User,
     to: instructor?.email,
     subject: `${student?.fullName} just paid for ${course?.title}`,
-    html: `for verification. Link expires in 30 mins.</p>`,
+    html: `${student?.fullName} just paid ${course?.currency}${course?.price} for your course ${course?.title}`,
   };
   transporter.sendMail(maildata, (error, info) => {
     if (error) {
