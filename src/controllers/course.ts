@@ -87,6 +87,10 @@ export const enrollForCourse = async (req: any, res: any) => {
   if (!course) {
     throw new NotFoundError(`Course with id ${courseId} does not exist`);
   }
+  const enrolledAlready = await courseStudent.findOne({ student: userId, course: courseId });
+  if (enrolledAlready) {
+    throw new BadRequestError(`You have already enrolled for course before`);
+  }
   if (course.free == true) {
     await courseStudent.create({
       student: userId,

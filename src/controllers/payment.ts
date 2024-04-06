@@ -19,3 +19,12 @@ export const paymentSuccessful = async (req: any, res: any) => {
   });
   res.status(StatusCodes.OK).json({ payment });
 };
+
+export const paymentCancelled = async (req: any, res: any) => {
+  const { paymentId } = req.params;
+  const payment = await Payment.findOne({ _id: paymentId });
+  if (!payment) {
+    throw new NotFoundError(`Payment with id ${paymentId} does not exists`);
+  }
+  res.status(StatusCodes.OK).json({ error: "payment was not successful" });
+};
