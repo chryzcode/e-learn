@@ -6,7 +6,7 @@ import { isVideo } from "../utils/mediaType";
 import express from "express";
 import http from "http";
 import { init as initSocket, emitCourseLiked } from "../utils/socket";
-import { makeCoursePayment } from "../utils/payment";
+import { makeCoursePayment } from "../utils/stripe";
 
 const app = express();
 const server = http.createServer(app);
