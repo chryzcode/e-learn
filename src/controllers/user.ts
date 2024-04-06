@@ -10,7 +10,7 @@ import cloudinary from "cloudinary";
 import bcrypt from "bcryptjs";
 
 const uniqueID = uuidv4();
-const domain = process.env.DOMAIN || "http://localhost:8000";
+const domain = process.env.DOMAIN || "http://localhost:8000/";
 
 const linkVerificationtoken = generateToken(uniqueID);
 
@@ -21,7 +21,7 @@ export const signUp = async (req: any, res: any) => {
     from: process.env.Email_User,
     to: user.email,
     subject: `${user.fullName} verify your account`,
-    html: `<p>Please use the following <a href="${domain}/auth/verify-account/?userId=${
+    html: `<p>Please use the following <a href="${domain}auth/verify-account/?userId=${
       user.id
     }/?token=${encodeURIComponent(
       linkVerificationtoken
@@ -29,7 +29,7 @@ export const signUp = async (req: any, res: any) => {
   };
   transporter.sendMail(maildata, (error, info) => {
     if (error) {
-      res.status(StatusCodes.BAD_REQUEST).send();
+      res.status(StatusCodes.BAD_REQUEST).json({ error: "Mail not sent due to errors" });
     }
     res.status(StatusCodes.OK).send();
   });
@@ -61,7 +61,7 @@ export const signIn = async (req: any, res: any) => {
       from: process.env.Email_User,
       to: user.email,
       subject: `${user.fullName} verify your account`,
-      html: `<p>Please use the following <a href="${domain}/auth/verify-account/?userId=${
+      html: `<p>Please use the following <a href="${domain}auth/verify-account/?userId=${
         user.id
       }/?token=${encodeURIComponent(
         linkVerificationtoken
@@ -70,7 +70,7 @@ export const signIn = async (req: any, res: any) => {
     transporter.sendMail(maildata, (error, info) => {
       if (error) {
         console.log(error);
-        res.status(StatusCodes.BAD_REQUEST).send();
+        res.status(StatusCodes.BAD_REQUEST).json({ error: "Mail not sent due to errors" });
       }
       console.log(info);
       res.status(StatusCodes.OK).send();
@@ -169,13 +169,13 @@ export const sendForgotPasswordLink = async (req: any, res: any) => {
     from: process.env.Email_User,
     to: user.email,
     subject: `${user.fullName} you forgot your password`,
-    html: `<p>Please use the following <a href="${domain}/verify/forgot-password/?userId=${
+    html: `<p>Please use the following <a href="${domain}verify/forgot-password/?userId=${
       user.id
     }/?token=${encodeURIComponent(linkVerificationtoken)}">link</a> for verification. Link expires in 30 mins.</p>`,
   };
   transporter.sendMail(maildata, (error, info) => {
     if (error) {
-      res.status(StatusCodes.BAD_REQUEST).send();
+      res.status(StatusCodes.BAD_REQUEST).json({ error: "Mail not sent due to errors" });
     }
     res.status(StatusCodes.OK).json({ success: "Check you email to change your password" });
   });

@@ -1,7 +1,9 @@
 import { Payment } from "../models/payment";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { StatusCodes } from "http-status-codes";
-import { courseStudent } from "../models/course";
+import { courseStudent, Course } from "../models/course";
+import { transporter } from "../utils/transporter";
+import { User } from "../models/user";
 
 export const paymentSuccessful = async (req: any, res: any) => {
   const { paymentId } = req.params;
@@ -13,10 +15,28 @@ export const paymentSuccessful = async (req: any, res: any) => {
   if (!payment) {
     throw new NotFoundError(`Payment with id ${paymentId} does not exists`);
   }
-  await courseStudent.create({
+  if (payment.paid == true) {
+    throw new BadRequestError(`payment has been paid already`);
+  }
+  const studentCourseObj = await courseStudent.create({
     student: payment.student,
     course: payment.course,
   });
+  const student = await User.findOne({ _id: studentCourseObj.student });
+  const course = await Course.findOne({ _id: studentCourseObj.course });
+  const instructor = await User.findOne({ _id: course?.instructor });
+  const maildata = {
+    from: process.env.Email_User,
+    to: instructor?.email,
+    subject: `${student?.fullName} just paid for ${course?.title}`,
+    html: `${student?.fullName} just paid ${course?.currency}${course?.price} for your course ${course?.title}`,
+  };
+  transporter.sendMail(maildata, (error, info) => {
+    if (error) {
+      res.status(StatusCodes.BAD_REQUEST).json({ error: "Mail not sent due to errors" });
+    }
+  });
+
   res.status(StatusCodes.OK).json({ payment });
 };
 
@@ -26,5 +46,5 @@ export const paymentCancelled = async (req: any, res: any) => {
   if (!payment) {
     throw new NotFoundError(`Payment with id ${paymentId} does not exists`);
   }
-  res.status(StatusCodes.OK).json({ error: "payment was not successful" });
+  res.status(StatusCodes.OK).json({ payment });
 };
