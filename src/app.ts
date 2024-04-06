@@ -39,9 +39,11 @@ app.get("/", (req: any, res: any) => {
 
 import userRoute from "./routes/user";
 import courseRoute from "./routes/course"
+import paymentCourse from "./routes/payment";
 
 app.use("/", userRoute);
 app.use("/course", courseRoute);
+app.use("/payment", paymentCourse);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

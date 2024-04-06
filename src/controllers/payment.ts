@@ -43,5 +43,5 @@ export const paymentCancelled = async (req: any, res: any) => {
   if (!payment) {
     throw new NotFoundError(`Payment with id ${paymentId} does not exists`);
   }
-  res.status(StatusCodes.OK).json({ error: "payment was not successful" });
+  res.status(StatusCodes.OK).json({ payment });
 };
