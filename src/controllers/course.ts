@@ -6,7 +6,7 @@ import { isVideo } from "../utils/mediaType";
 import express from "express";
 import http from "http";
 import { init as initSocket, emitCourseLiked } from "../utils/socket";
-import { makeCoursePayment } from "../utils/payment";
+import { makeCoursePayment } from "../utils/stripe";
 
 const app = express();
 const server = http.createServer(app);
@@ -86,6 +86,10 @@ export const enrollForCourse = async (req: any, res: any) => {
   const course = await Course.findOne({ _id: courseId });
   if (!course) {
     throw new NotFoundError(`Course with id ${courseId} does not exist`);
+  }
+  const enrolledAlready = await courseStudent.findOne({ student: userId, course: courseId });
+  if (enrolledAlready) {
+    throw new BadRequestError(`You have already enrolled for course before`);
   }
   if (course.free == true) {
     await courseStudent.create({

@@ -1,9 +1,9 @@
-// import express from "express";
-// import { makeCoursePayment } from "../controllers/payment";
-// import authenticateUser from "../middleware/authentication";
+import express from "express";
+import { paymentSuccessful, paymentCancelled } from "../controllers/payment";
 
-// const router = express.Router();
+const router = express.Router();
 
-// router.route("/pay/:courseId").post(authenticateUser, makeCoursePayment);
+router.route("/:paymentId/success").post(paymentSuccessful);
+router.route("/:paymentId/cancel").post(paymentCancelled);
 
-// export default router;
+export default router;

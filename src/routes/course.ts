@@ -5,6 +5,9 @@ import {
   getAnInstructorCourses,
   instructorCourses,
   courseCategories,
+  filterCourseByCategory,
+  freeCourses,
+  enrollForCourse,
 } from "../controllers/course";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -15,5 +18,8 @@ router.route("/").post(authenticateUser, authenticateInstructor, createCourse).g
 router.route("/instructor/:instructorId").get(getAnInstructorCourses);
 router.route("/my-courses").get(authenticateUser, authenticateInstructor, instructorCourses)
 router.route("/categories").get(courseCategories);
+router.route("/categories/:categoryId").get(filterCourseByCategory);
+router.route("/free").get(freeCourses);
+router.route("/enroll/:courseId").post(authenticateUser, enrollForCourse);
 
 export default router;
