@@ -1,5 +1,5 @@
 import cloudinary from "cloudinary";
-import { Course, courseCategory, courseStudent, courseLike } from "../models/course";
+import { Course, courseCategory, courseStudent, courseLike, courseRating } from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isVideo } from "../utils/mediaType";
@@ -189,4 +189,28 @@ export const likeCourse = async (req: any, res: any) => {
   const courseLikes = (await courseLike.find({ course: courseId })).length;
   emitCourseLiked(courseId, courseLikes);
   res.status(StatusCodes.OK).json({ courseLikes });
+};
+
+export const rateCourse = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.course;
+  req.body.student = userId;
+  req.body.course = courseId;
+  let rating = await courseRating.findOne({ student: userId, course: courseId });
+  if (!rating) {
+    rating = await courseRating.create({ ...req.body });
+  } else {
+    rating = await courseRating.findOneAndUpdate({ _id: rating.id }, req.body, { new: true, runValidators: true });
+  }
+  res.status(StatusCodes.OK).json({ rating });
+};
+
+export const courseRatings = async (req: any, res: any) => {
+  const { courseId } = req.params;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does not exist`);
+  }
+  const ratings = await courseRating.find({ course: courseId });
+  res.status(StatusCodes.OK).json({ ratings });
 };

@@ -12,6 +12,8 @@ import {
   editCourse,
   deleteCourse,
   likeCourse,
+  rateCourse,
+  courseRatings,
 } from "../controllers/course";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -30,5 +32,6 @@ router.route("/detail/:courseId").get(authenticateUser, courseDetail);
 router.route("/edit/:courseId").put(authenticateUser, authenticateInstructor, editCourse);
 router.route("/delete/:courseId").delete(authenticateUser, authenticateInstructor, deleteCourse);
 router.route("/like/:courseId").post(authenticateUser, authenticateStudent, likeCourse);
+router.route("/rate/:courseId").post(authenticateUser, authenticateStudent, rateCourse).get(courseRatings);
 
 export default router;
