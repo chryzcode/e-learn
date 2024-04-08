@@ -177,7 +177,7 @@ export const deleteCourse = async (req: any, res: any) => {
   }
 };
 
-export const likeUnLikeCourse = async (req: any, res: any) => {
+export const likeCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
   const likeCourse = await courseLike.findOne({ student: userId, course: courseId });
