@@ -205,4 +205,12 @@ export const rateCourse = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ rating });
 };
 
-
+export const courseRatings = async (req: any, res: any) => {
+  const { courseId } = req.params;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does not exist`);
+  }
+  const ratings = await courseRating.find({ course: courseId });
+  res.status(StatusCodes.OK).json({ ratings });
+};
