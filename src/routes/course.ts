@@ -9,6 +9,9 @@ import {
   freeCourses,
   enrollForCourse,
   courseDetail,
+  editCourse,
+  deleteCourse,
+  likeCourse,
 } from "../controllers/course";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -24,5 +27,8 @@ router.route("/categories/:categoryId").get(filterCourseByCategory);
 router.route("/free").get(freeCourses);
 router.route("/enroll/:courseId").post(authenticateUser, enrollForCourse);
 router.route("/detail/:courseId").get(authenticateUser, courseDetail);
+router.route("/edit/:courseId").put(authenticateUser, authenticateInstructor, editCourse);
+router.route("/delete/:courseId").delete(authenticateUser, authenticateInstructor, deleteCourse);
+router.route("/like/:courseId").post(authenticateUser, authenticateStudent, likeCourse);
 
 export default router;

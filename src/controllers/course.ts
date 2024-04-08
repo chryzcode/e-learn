@@ -130,23 +130,24 @@ export const editCourse = async (req: any, res: any) => {
   if (!category) {
     category = await courseCategory.create({ name: req.body.category });
   }
-
   req.body.category = category.id;
-  if (isVideo(req.body.video) == false) {
-    throw new BadRequestError("Video/ Media type not supported");
-  }
-  try {
-    const result = await cloudinary.v2.uploader.upload(req.body.video, {
-      resource_type: "video",
-      folder: "E-Learn/Course/Video/",
-      use_filename: true,
-      quality: "auto:low", // Set quality to auto:low for automatic compression
-      eager: [{ format: "mp4", video_codec: "h264" }], // Convert to MP4 with H.264 codec for better compression
-    });
-    req.body.video = result.url;
-  } catch (error) {
-    console.error(error);
-    throw new BadRequestError("error uploading video on cloudinary");
+  if (req.body.video) {
+    if (isVideo(req.body.video) == false) {
+      throw new BadRequestError("Video/ Media type not supported");
+    }
+    try {
+      const result = await cloudinary.v2.uploader.upload(req.body.video, {
+        resource_type: "video",
+        folder: "E-Learn/Course/Video/",
+        use_filename: true,
+        quality: "auto:low", // Set quality to auto:low for automatic compression
+        eager: [{ format: "mp4", video_codec: "h264" }], // Convert to MP4 with H.264 codec for better compression
+      });
+      req.body.video = result.url;
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestError("error uploading video on cloudinary");
+    }
   }
   const course = await Course.findOneAndUpdate({ _id: courseId, instructor: userId }, req.body, {
     runValidators: true,
@@ -162,7 +163,7 @@ export const deleteCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.params;
   req.body.instructor = userId;
-  const course = await Course.findOneAndDelete({ _id: courseId, instructor: userId });
+  const course = await Course.findOne({ _id: courseId, instructor: userId });
   if (!course) {
     throw new NotFoundError(`Course with ${courseId} does not exist`);
   }
@@ -170,11 +171,13 @@ export const deleteCourse = async (req: any, res: any) => {
     await Course.findOneAndDelete({ _id: courseId, instructor: userId });
     res.status(StatusCodes.OK).json({ success: "course is successfully deleted" });
   } else {
-    //check if there are student who just paid
+    res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ unathorized: "Students might have just paid for the course. Reach out to the team" });
   }
 };
 
-export const likeUnLikeCourse = async (req: any, res: any) => {
+export const likeCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
   const likeCourse = await courseLike.findOne({ student: userId, course: courseId });
