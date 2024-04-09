@@ -1,9 +1,10 @@
 import socketIo from "socket.io";
 import { Server } from "http"; // Import Server type from "http" module
+import { courseComment } from "../models/course";
 
-let io: any; 
+let io: any;
 
-const init = (httpServer : any) => {
+const init = (httpServer: any) => {
   io = new Server(httpServer);
 
   io.on("connection", (socket: socketIo.Socket) => {
@@ -26,4 +27,14 @@ const emitCourseLiked = (courseId: string, courseLikes: number) => {
   }
 };
 
-export { init, emitCourseLiked };
+const emitcourseComments = async (courseId: string) => {
+  if (io) {
+    const comments = await courseComment.find({});
+    io.emit("courseLiked", { courseId, comments });
+    console.log(comments);
+  } else {
+    console.error("Socket.IO is not initialized");
+  }
+};
+
+export { init, emitCourseLiked, emitcourseComments };

@@ -5,7 +5,7 @@ import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/
 import { isVideo } from "../utils/mediaType";
 import express from "express";
 import http from "http";
-import { init as initSocket, emitCourseLiked } from "../utils/socket";
+import { init as initSocket, emitCourseLiked, emitcourseComments } from "../utils/socket";
 import { makeCoursePayment } from "../utils/stripe";
 
 const app = express();
@@ -219,6 +219,7 @@ export const createComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
   const comment = await courseComment.create({ student: userId, course: courseId, comment: req.body.comment });
+  emitcourseComments(courseId);
   res.status(StatusCodes.CREATED).json({ comment });
 };
 
@@ -229,6 +230,7 @@ export const courseComments = async (req: any, res: any) => {
     throw new NotFoundError(`Course with ${courseId} does not exist`);
   }
   const comments = await courseComment.find({ course: courseId });
+  emitcourseComments(courseId);
   res.status(StatusCodes.OK).json({ comments });
 };
 
