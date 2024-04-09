@@ -221,3 +221,13 @@ export const createComment = async (req: any, res: any) => {
   const comment = await courseComment.create({ student: userId, course: courseId, comment: req.body.comment });
   res.status(StatusCodes.CREATED).json({ comment });
 };
+
+export const courseComments = async (req: any, res: any) => {
+  const { courseId } = req.params;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does not exist`);
+  }
+  const comments = await courseComment.find({ course: courseId });
+  res.status(StatusCodes.OK).json({ comments });
+};
