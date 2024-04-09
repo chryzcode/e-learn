@@ -231,3 +231,18 @@ export const courseComments = async (req: any, res: any) => {
   const comments = await courseComment.find({ course: courseId });
   res.status(StatusCodes.OK).json({ comments });
 };
+
+export const editComment = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.course;
+  const { commentId } = req.params;
+  const comment = await Course.findOneAndUpdate(
+    { _id: commentId, course: courseId, student: userId },
+    { comment: req.body.comment },
+    { new: true, runValidators: true }
+  );
+  if (!comment) {
+    throw new NotFoundError(`comment not found`);
+  }
+  res.status(StatusCodes.OK).json({ comment });
+};
