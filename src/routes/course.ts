@@ -17,6 +17,7 @@ import {
   createComment,
   courseComments,
   editComment,
+  deleteComment,
 } from "../controllers/course";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -37,6 +38,9 @@ router.route("/delete/:courseId").delete(authenticateUser, authenticateInstructo
 router.route("/like/:courseId").post(authenticateUser, authenticateStudent, likeCourse);
 router.route("/rate/:courseId").post(authenticateUser, authenticateStudent, rateCourse).get(courseRatings);
 router.route("/comment/:courseId").post(authenticateUser, authenticateStudent, createComment).get(courseComments);
-router.route("/:courseId/comment/:commentId").put(authenticateUser, authenticateStudent, editComment);
+router
+  .route("/:courseId/comment/:commentId")
+  .put(authenticateUser, authenticateStudent, editComment)
+  .delete(authenticateUser, authenticateStudent, deleteComment);
 
 export default router;
