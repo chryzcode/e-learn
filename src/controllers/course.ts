@@ -246,3 +246,14 @@ export const editComment = async (req: any, res: any) => {
   }
   res.status(StatusCodes.OK).json({ comment });
 };
+
+export const deleteComment = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.course;
+  const { commentId } = req.params;
+  const comment = await courseComment.findOneAndDelete({ _id: commentId, course: courseId, student: userId });
+  if (!comment) {
+    throw new NotFoundError(`comment not found`);
+  }
+  res.status(StatusCodes.OK).json({ success: "comment deleted successfully" });
+};
