@@ -1,5 +1,5 @@
 import cloudinary from "cloudinary";
-import { Course, courseCategory, courseStudent, courseLike, courseRating } from "../models/course";
+import { Course, courseCategory, courseStudent, courseLike, courseRating, courseComment } from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isVideo } from "../utils/mediaType";
@@ -213,4 +213,11 @@ export const courseRatings = async (req: any, res: any) => {
   }
   const ratings = await courseRating.find({ course: courseId });
   res.status(StatusCodes.OK).json({ ratings });
+};
+
+export const createComment = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.course;
+  const comment = await courseComment.create({ student: userId, course: courseId, comment: req.body.comment });
+  res.status(StatusCodes.CREATED).json({ comment });
 };

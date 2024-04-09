@@ -92,7 +92,7 @@ const courseRatingSchema = new mongoose.Schema(
 
 const courseCommentSchema = new mongoose.Schema(
   {
-    user: {
+    student: {
       type: mongoose.Schema.ObjectId,
       ref: "User",
     },
