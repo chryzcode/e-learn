@@ -1,5 +1,5 @@
 import cloudinary from "cloudinary";
-import { Course, courseCategory, courseStudent, courseLike, courseRating } from "../models/course";
+import { Course, courseCategory, courseStudent, courseLike, courseRating, courseComment } from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isVideo } from "../utils/mediaType";
@@ -213,4 +213,36 @@ export const courseRatings = async (req: any, res: any) => {
   }
   const ratings = await courseRating.find({ course: courseId });
   res.status(StatusCodes.OK).json({ ratings });
+};
+
+export const createComment = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.course;
+  const comment = await courseComment.create({ student: userId, course: courseId, comment: req.body.comment });
+  res.status(StatusCodes.CREATED).json({ comment });
+};
+
+export const courseComments = async (req: any, res: any) => {
+  const { courseId } = req.params;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course with ${courseId} does not exist`);
+  }
+  const comments = await courseComment.find({ course: courseId });
+  res.status(StatusCodes.OK).json({ comments });
+};
+
+export const editComment = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.course;
+  const { commentId } = req.params;
+  const comment = await courseComment.findOneAndUpdate(
+    { _id: commentId, course: courseId, student: userId },
+    { comment: req.body.comment },
+    { new: true, runValidators: true }
+  );
+  if (!comment) {
+    throw new NotFoundError(`comment not found`);
+  }
+  res.status(StatusCodes.OK).json({ comment });
 };
