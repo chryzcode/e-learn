@@ -236,7 +236,7 @@ export const editComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
   const { commentId } = req.params;
-  const comment = await Course.findOneAndUpdate(
+  const comment = await courseComment.findOneAndUpdate(
     { _id: commentId, course: courseId, student: userId },
     { comment: req.body.comment },
     { new: true, runValidators: true }
