@@ -15,6 +15,6 @@ initSocket(server);
 
 export const userRooms = async (req: any, res: any) => {
   const { userId } = req.user;
-  const rooms = courseRoom.find({ user: userId });
+  const rooms = await courseRoom.find({ users: userId });
   res.status(StatusCodes.OK).json({ rooms });
 };
