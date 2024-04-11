@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { courseStudent, Course } from "../models/course";
 import { transporter } from "../utils/transporter";
 import { User } from "../models/user";
+import { courseRoom } from "../models/chatRoom";
 
 export const paymentSuccessful = async (req: any, res: any) => {
   const { paymentId } = req.params;
@@ -22,9 +23,15 @@ export const paymentSuccessful = async (req: any, res: any) => {
     student: payment.student,
     course: payment.course,
   });
+
   const student = await User.findOne({ _id: studentCourseObj.student });
   const course = await Course.findOne({ _id: studentCourseObj.course });
   const instructor = await User.findOne({ _id: course?.instructor });
+  const room = await courseRoom.findOne({ course: payment.course });
+  if (!room) {
+    throw new NotFoundError("Course room not found");
+  }
+  room.users.push(student?.id);
   const maildata = {
     from: process.env.Email_User,
     to: instructor?.email,
