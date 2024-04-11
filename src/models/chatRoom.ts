@@ -1,10 +1,7 @@
 import mongoose from "mongoose";
 
 const courseRoomSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
+  users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   course: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Course",
@@ -12,7 +9,7 @@ const courseRoomSchema = new mongoose.Schema({
 });
 
 const roomMessageSchema = new mongoose.Schema(
-    {
+  {
     message: {
       type: String,
       required: [true, "message field is required"],

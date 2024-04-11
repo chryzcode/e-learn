@@ -42,10 +42,11 @@ export const createCourse = async (req: any, res: any) => {
     throw new BadRequestError("error uploading video on cloudinary");
   }
   const course = await Course.create({ ...req.body });
-  await courseRoom.create({
+  const room = await courseRoom.create({
     course: course.id,
-    user: userId,
   });
+  room.users.push(userId);
+  await room.save();
   res.status(StatusCodes.CREATED).json({ course });
 };
 
