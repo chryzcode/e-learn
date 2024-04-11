@@ -117,6 +117,8 @@ const courseCategorySchema = new mongoose.Schema({
   },
 });
 
+
+
 export const Course = mongoose.model("Course", courseSchema);
 export const courseStudent = mongoose.model("courseStudent", courseStudentSchema);
 export const courseLike = mongoose.model("courseLike", courseLikeSchema);
