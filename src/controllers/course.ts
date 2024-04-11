@@ -103,6 +103,11 @@ export const enrollForCourse = async (req: any, res: any) => {
       student: userId,
       course: courseId,
     });
+    const room = await courseRoom.findOne({ course: courseId });
+    if (!room) {
+      throw new NotFoundError("Course room not found");
+    }
+    room.users.push(userId);
     res.status(StatusCodes.OK).json({ success: "enrollment successful" });
   } else {
     const payment = await makeCoursePayment(userId, courseId);
