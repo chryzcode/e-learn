@@ -7,6 +7,7 @@ import express from "express";
 import http from "http";
 import { init as initSocket, emitCourseLiked, emitcourseComments } from "../utils/socket";
 import { makeCoursePayment } from "../utils/stripe";
+import { courseRoom } from "../models/chatRoom";
 
 const app = express();
 const server = http.createServer(app);
@@ -15,7 +16,8 @@ const server = http.createServer(app);
 initSocket(server);
 
 export const createCourse = async (req: any, res: any) => {
-  req.body.instructor = req.user.userId;
+  const { userId } = req.user;
+  req.body.instructor = userId;
 
   var category = await courseCategory.findOne({ name: req.body.category });
   if (!category) {
@@ -40,6 +42,11 @@ export const createCourse = async (req: any, res: any) => {
     throw new BadRequestError("error uploading video on cloudinary");
   }
   const course = await Course.create({ ...req.body });
+  const room = await courseRoom.create({
+    course: course.id,
+  });
+  room.users.push(userId);
+  await room.save();
   res.status(StatusCodes.CREATED).json({ course });
 };
 
