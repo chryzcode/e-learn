@@ -10,6 +10,10 @@ const courseRoomSchema = new mongoose.Schema({
 
 const roomMessageSchema = new mongoose.Schema(
   {
+    room: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "courseRoom",
+    },
     message: {
       type: String,
       required: [true, "message field is required"],

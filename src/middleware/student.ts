@@ -13,6 +13,6 @@ export default async (req: any, res: any, next: any) => {
     req.course = { courseId: course.id };
     next();
   } else {
-    throw new UnauthenticatedError("Authentication as an instructor invalid");
+    throw new UnauthenticatedError("Authentication as student is invalid");
   }
 };
