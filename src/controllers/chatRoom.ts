@@ -5,7 +5,7 @@ import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/
 import { isImage } from "../utils/mediaType";
 import express from "express";
 import http from "http";
-import { init as initSocket } from "../utils/socket";
+import { init as initSocket, emitroomMessages } from "../utils/socket";
 
 const app = express();
 const server = http.createServer(app);
@@ -27,6 +27,7 @@ export const roomMessages = async (req: any, res: any) => {
     throw new NotFoundError(`Room does not exists`);
   }
   const messages = await roomMessage.find({ room: room.id }).sort("createdAt");
+  emitroomMessages(room.id, messages);
   res.status(StatusCodes.OK).json({ messages });
 };
 
