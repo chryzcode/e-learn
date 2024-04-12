@@ -36,11 +36,25 @@ export const sendMessage = async (req: any, res: any) => {
   const { userId } = req.user;
   req.body.room = roomId;
   req.body.sender = userId;
+  if (req.body.media) {
+    if (isImage(req.body.media) == false) {
+      throw new BadRequestError("Image/ Media type not supported");
+    }
+    try {
+      const result = await cloudinary.v2.uploader.upload(req.body.media, {
+        folder: "E-Learn/Message/Image/",
+        use_filename: true,
+      });
+      req.body.media = result.url;
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestError("error uploading video on cloudinary");
+    }
+  }
   const room = await courseRoom.findOne({ course: roomId, users: userId });
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-
   const message = await roomMessage.create({ ...req.body });
   emitroomMessages(roomId);
   res.status(StatusCodes.OK).json({ message });
