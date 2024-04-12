@@ -27,7 +27,7 @@ export const roomMessages = async (req: any, res: any) => {
     throw new NotFoundError(`Room does not exist`);
   }
   const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
-  emitroomMessages(roomId, messages);
+  emitroomMessages(roomId);
   res.status(StatusCodes.OK).json({ messages });
 };
 
@@ -42,8 +42,7 @@ export const sendMessage = async (req: any, res: any) => {
   }
 
   const message = await roomMessage.create({ ...req.body });
-  const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
-  emitroomMessages(roomId, messages);
+  emitroomMessages(roomId);
   res.status(StatusCodes.OK).json({ message });
 };
 
