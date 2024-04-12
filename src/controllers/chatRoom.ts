@@ -34,13 +34,17 @@ export const roomMessages = async (req: any, res: any) => {
 export const sendMessage = async (req: any, res: any) => {
   const { roomId } = req.params;
   const { userId } = req.user;
+  req.body.room = roomId;
+  req.body.sender = userId;
   const room = await courseRoom.findOne({ course: roomId, users: userId });
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  req.body.room = roomId;
+
   const message = await roomMessage.create({ ...req.body });
   const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
   emitroomMessages(roomId, messages);
   res.status(StatusCodes.OK).json({ message });
 };
+
+export const editMessage = async (req: any, res: any) => {};

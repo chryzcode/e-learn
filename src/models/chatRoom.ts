@@ -10,6 +10,10 @@ const courseRoomSchema = new mongoose.Schema({
 
 const roomMessageSchema = new mongoose.Schema(
   {
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     room: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "courseRoom",
