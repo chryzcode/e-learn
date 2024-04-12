@@ -27,14 +27,20 @@ const emitCourseLiked = (courseId: string, courseLikes: number) => {
   }
 };
 
-const emitcourseComments = async (courseId: string) => {
+const emitcourseComments = async (courseId: string, comments: any) => {
   if (io) {
-    const comments = await courseComment.find({});
-    io.emit("courseLiked", { courseId, comments });
-    console.log(comments);
+    io.emit("courseComments", { courseId, comments });
   } else {
     console.error("Socket.IO is not initialized");
   }
 };
 
-export { init, emitCourseLiked, emitcourseComments };
+const emitroomMessages = async (roomId: string, messages: any) => {
+  if (io) {
+    io.emit("roomMessages", { roomId, messages });
+  } else {
+    console.error("Socket.IO is not initialized");
+  }
+};
+
+export { init, emitCourseLiked, emitcourseComments, emitroomMessages };

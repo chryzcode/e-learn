@@ -26,7 +26,7 @@ export const roomMessages = async (req: any, res: any) => {
   if (!room) {
     throw new NotFoundError(`Room does not exists`);
   }
-  const messages = await roomMessage.find({ room: room.id });
+  const messages = await roomMessage.find({ room: room.id }).sort("createdAt");
   res.status(StatusCodes.OK).json({ messages });
 };
 
