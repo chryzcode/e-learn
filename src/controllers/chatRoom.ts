@@ -21,19 +21,30 @@ export const userRooms = async (req: any, res: any) => {
 
 export const roomMessages = async (req: any, res: any) => {
   const { userId } = req.user;
-  const { courseId } = req.course;
-  const room = await courseRoom.findOne({ course: courseId, users: userId });
+  const { roomId } = req.course;
+  const room = await courseRoom.findOne({ _id: roomId, users: userId });
   if (!room) {
-    throw new NotFoundError(`Room does not exists`);
+    throw new NotFoundError(`Room does not exist`);
   }
-  const messages = await roomMessage.find({ room: room.id }).sort("createdAt");
-  emitroomMessages(room.id, messages);
+  const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
+  emitroomMessages(roomId, messages);
   res.status(StatusCodes.OK).json({ messages });
 };
 
-// export const sendMessage = async (req: any, res: any) => {
-//   const { roomId } = req.params
-//   const { userId } = req.user;
-//   const room = await courseRoom.findOne(filter, projection, options);
+export const sendMessage = async (req: any, res: any) => {
+  const { roomId } = req.params;
+  const { userId } = req.user;
+  req.body.room = roomId;
+  req.body.sender = userId;
+  const room = await courseRoom.findOne({ course: roomId, users: userId });
+  if (!room) {
+    throw new NotFoundError(`Room does not exist`);
+  }
 
-// }
+  const message = await roomMessage.create({ ...req.body });
+  const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
+  emitroomMessages(roomId, messages);
+  res.status(StatusCodes.OK).json({ message });
+};
+
+export const editMessage = async (req: any, res: any) => {};
