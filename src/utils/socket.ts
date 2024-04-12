@@ -1,6 +1,7 @@
 import socketIo from "socket.io";
 import { Server } from "http"; // Import Server type from "http" module
 import { courseComment } from "../models/course";
+import { roomMessage } from "../models/chatRoom";
 
 let io: any;
 
@@ -29,15 +30,16 @@ const emitCourseLiked = (courseId: string, courseLikes: number) => {
 
 const emitcourseComments = async (courseId: string) => {
   if (io) {
-    const comments = await courseComment.find({ course: courseId });
+    const comments = await courseComment.find({ course: courseId }).sort("createdAt");
     io.emit("courseComments", { courseId, comments });
   } else {
     console.error("Socket.IO is not initialized");
   }
 };
 
-const emitroomMessages = async (roomId: string, messages: any) => {
+const emitroomMessages = async (roomId: string) => {
   if (io) {
+    const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
     io.emit("roomMessages", { roomId, messages });
   } else {
     console.error("Socket.IO is not initialized");
