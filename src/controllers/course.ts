@@ -231,7 +231,8 @@ export const createComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
   const comment = await courseComment.create({ student: userId, course: courseId, comment: req.body.comment });
-  emitcourseComments(courseId);
+  const comments = await courseComment.find({ course: courseId });
+  emitcourseComments(courseId, comments);
   res.status(StatusCodes.CREATED).json({ comment });
 };
 
@@ -242,7 +243,7 @@ export const courseComments = async (req: any, res: any) => {
     throw new NotFoundError(`Course with ${courseId} does not exist`);
   }
   const comments = await courseComment.find({ course: courseId });
-  emitcourseComments(courseId);
+  emitcourseComments(courseId, comments);
   res.status(StatusCodes.OK).json({ comments });
 };
 
