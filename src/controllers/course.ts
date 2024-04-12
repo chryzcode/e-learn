@@ -231,8 +231,7 @@ export const createComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
   const comment = await courseComment.create({ student: userId, course: courseId, comment: req.body.comment });
-  const comments = await courseComment.find({ course: courseId });
-  emitcourseComments(courseId, comments);
+  emitcourseComments(courseId);
   res.status(StatusCodes.CREATED).json({ comment });
 };
 
@@ -243,7 +242,7 @@ export const courseComments = async (req: any, res: any) => {
     throw new NotFoundError(`Course with ${courseId} does not exist`);
   }
   const comments = await courseComment.find({ course: courseId });
-  emitcourseComments(courseId, comments);
+  emitcourseComments(courseId);
   res.status(StatusCodes.OK).json({ comments });
 };
 
@@ -259,6 +258,7 @@ export const editComment = async (req: any, res: any) => {
   if (!comment) {
     throw new NotFoundError(`comment not found`);
   }
+  emitcourseComments(courseId);
   res.status(StatusCodes.OK).json({ comment });
 };
 
@@ -270,5 +270,6 @@ export const deleteComment = async (req: any, res: any) => {
   if (!comment) {
     throw new NotFoundError(`comment not found`);
   }
+  emitcourseComments(courseId);
   res.status(StatusCodes.OK).json({ success: "comment deleted successfully" });
 };

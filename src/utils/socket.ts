@@ -27,8 +27,9 @@ const emitCourseLiked = (courseId: string, courseLikes: number) => {
   }
 };
 
-const emitcourseComments = async (courseId: string, comments: any) => {
+const emitcourseComments = async (courseId: string) => {
   if (io) {
+    const comments = await courseComment.find({ course: courseId });
     io.emit("courseComments", { courseId, comments });
   } else {
     console.error("Socket.IO is not initialized");
