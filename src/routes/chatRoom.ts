@@ -7,9 +7,11 @@ import {
   deleteMessage,
   exitRoom,
   inviteUserToRoom,
+  removeUser,
 } from "../controllers/chatRoom";
 import authenticateUser from "../middleware/authentication";
 import authenticateStudent from "../middleware/student";
+import authenticateInstructor from "../middleware/instructor";
 
 const router = express.Router();
 
@@ -18,5 +20,6 @@ router.route("/:roomId").get(authenticateUser, roomMessages).post(authenticateUs
 router.route("/:roomId/:messageId").put(authenticateUser, editMessage).delete(authenticateUser, deleteMessage);
 router.route("/:roomId/exit").post(authenticateUser, exitRoom);
 router.route("/:roomId/invite").post(authenticateUser, authenticateStudent, inviteUserToRoom);
+router.route("/:roomId/remove/:userId").post(authenticateUser, authenticateInstructor, removeUser);
 
 export default router;
