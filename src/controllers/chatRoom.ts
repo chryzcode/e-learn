@@ -97,5 +97,15 @@ export const deleteMessage = async (req: any, res: any) => {
     throw new NotFoundError(`Message not found`);
   }
   emitroomMessages(roomId);
-  res.status(StatusCodes.OK).json({ success: "Message deleted successfylly" });
+  res.status(StatusCodes.OK).json({ success: "Message deleted successfully" });
+};
+
+export const exitRoom = async (req: any, res: any) => {
+  const { roomId } = req.params;
+  const { userId } = req.user;
+  const room = await courseRoom.findOneAndUpdate({ _id: roomId }, { $pull: { users: userId } }, { new: true });
+  if (!room) {
+    throw new NotFoundError(`Room does not exist`);
+  }
+  res.status(StatusCodes.OK).json({ success: "you have successfully exited the room" });
 };
