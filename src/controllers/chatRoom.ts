@@ -60,4 +60,42 @@ export const sendMessage = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ message });
 };
 
-export const editMessage = async (req: any, res: any) => {};
+export const editMessage = async (req: any, res: any) => {
+  const { messageId, roomId } = req.params;
+  const { userId } = req.user;
+  if (req.body.media) {
+    if (isImage(req.body.media) == false) {
+      throw new BadRequestError("Image/ Media type not supported");
+    }
+    try {
+      const result = await cloudinary.v2.uploader.upload(req.body.media, {
+        folder: "E-Learn/Message/Image/",
+        use_filename: true,
+      });
+      req.body.media = result.url;
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestError("error uploading video on cloudinary");
+    }
+  }
+  const message = await roomMessage.findOneAndUpdate({ _id: messageId, room: roomId, sender: userId }, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  if (!message) {
+    throw new NotFoundError(`Message not found`);
+  }
+  emitroomMessages(roomId);
+  res.status(StatusCodes.OK).json({ message });
+};
+
+export const deleteMessage = async (req: any, res: any) => {
+  const { messageId, roomId } = req.params;
+  const { userId } = req.user;
+  const message = await roomMessage.findOneAndDelete({ _id: messageId, room: roomId, sender: userId });
+  if (!message) {
+    throw new NotFoundError(`Message not found`);
+  }
+  emitroomMessages(roomId);
+  res.status(StatusCodes.OK).json({ success: "Message deleted successfylly" });
+};
