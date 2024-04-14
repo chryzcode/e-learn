@@ -4,7 +4,6 @@ import { courseComment } from "../models/course";
 import { roomMessage } from "../models/chatRoom";
 import { User } from "../models/user";
 
-const botName = "The E-Learn Bot";
 
 let io: any;
 
@@ -25,7 +24,17 @@ const joinRoom = async (roomId: string, userId: string) => {
   if (io) {
     const user = await User.findOne({ _id: userId });
     //broadcast when a user connects to everyone except the newly joined client
-    io.broadcast.to(roomId).emit("joinRoom", `${user?.fullName} has joined the chat `);
+    io.broadcast.to(roomId).emit("joinRoom", `${user?.fullName} just joined the chat room `);
+  } else {
+    console.error("Socket.IO is not initialized");
+  }
+};
+
+const removeFromRoom = async (roomId: string, userId: string) => {
+  if (io) {
+    const user = await User.findOne({ _id: userId });
+    //broadcast when a user connects to everyone except the newly joined client
+    io.broadcast.to(roomId).emit("joinRoom", `${user?.fullName} was removed from the chat room `);
   } else {
     console.error("Socket.IO is not initialized");
   }
@@ -34,11 +43,12 @@ const joinRoom = async (roomId: string, userId: string) => {
 const leaveRoom = async (roomId: string, userId: string) => {
   if (io) {
     const user = await User.findOne({ _id: userId });
-    io.broadcast.to(roomId).emit("joinRoom", `${user?.fullName} has left the chat room`);
+    io.to(roomId).emit("joinRoom", `${user?.fullName} just left the chat room`);
   } else {
     console.error("Socket.IO is not initialized");
   }
-}
+};
+
 
 const emitCourseLiked = (courseId: string, courseLikes: number) => {
   // Assuming courseId is string and courseLikes is number
