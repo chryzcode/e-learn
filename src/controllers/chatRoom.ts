@@ -5,7 +5,7 @@ import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/
 import { isImage } from "../utils/mediaType";
 import express from "express";
 import http from "http";
-import { init as initSocket, emitroomMessages, emitRemoveUser } from "../utils/socket";
+import { init as initSocket, emitroomMessages, emitRemoveUser, emitLeaveRoom } from "../utils/socket";
 
 const app = express();
 const server = http.createServer(app);
@@ -107,6 +107,7 @@ export const leaveRoom = async (req: any, res: any) => {
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
+  emitLeaveRoom(roomId, userId);
   res.status(StatusCodes.OK).json({ success: "you have successfully left the room" });
 };
 

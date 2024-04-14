@@ -40,7 +40,7 @@ export const emitRemoveUser = async (roomId: string, userId: string) => {
   }
 };
 
-export const leaveRoom = async (roomId: string, userId: string) => {
+export const emitLeaveRoom = async (roomId: string, userId: string) => {
   if (io) {
     const user = await User.findOne({ _id: userId });
     io.to(roomId).emit("leaveRooom", `${user?.fullName} just left the chat room`);
