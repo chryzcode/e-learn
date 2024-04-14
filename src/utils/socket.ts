@@ -1,7 +1,7 @@
 import socketIo from "socket.io";
 import { Server } from "http"; // Import Server type from "http" module
 import { courseComment } from "../models/course";
-import { roomMessage, courseRoom } from "../models/chatRoom";
+import { roomMessage } from "../models/chatRoom";
 import { User } from "../models/user";
 
 const botName = "The E-Learn Bot";
@@ -24,18 +24,27 @@ const init = (httpServer: any) => {
 const joinRoom = async (roomId: string, userId: string) => {
   if (io) {
     const user = await User.findOne({ _id: userId });
-    const room = await courseRoom.findOne({ _id: roomId });
-    io.broadcast.to(room).emit("joinRoom", `${user?.fullName} has joined the chat`);
+    //broadcast when a user connects to everyone except the newly joined client
+    io.broadcast.to(roomId).emit("joinRoom", `${user?.fullName} has joined the chat `);
   } else {
     console.error("Socket.IO is not initialized");
   }
 };
 
+const leaveRoom = async (roomId: string, userId: string) => {
+  if (io) {
+    const user = await User.findOne({ _id: userId });
+    io.broadcast.to(roomId).emit("joinRoom", `${user?.fullName} has left the chat room`);
+  } else {
+    console.error("Socket.IO is not initialized");
+  }
+}
+
 const emitCourseLiked = (courseId: string, courseLikes: number) => {
   // Assuming courseId is string and courseLikes is number
   if (io) {
     // Check if io is initialized
-    io.emit("courseLiked", { courseId, courseLikes });
+    io.to(courseId).emit("courseLiked", { courseId, courseLikes });
   } else {
     console.error("Socket.IO is not initialized");
   }
