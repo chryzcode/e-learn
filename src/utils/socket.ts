@@ -44,7 +44,7 @@ const emitCourseLiked = (courseId: string, courseLikes: number) => {
 const emitcourseComments = async (courseId: string) => {
   if (io) {
     const comments = await courseComment.find({ course: courseId }).sort("createdAt");
-    io.emit("courseComments", { courseId, comments });
+    io.to(courseId).emit("courseComments", { courseId, comments });
   } else {
     console.error("Socket.IO is not initialized");
   }
@@ -53,7 +53,7 @@ const emitcourseComments = async (courseId: string) => {
 const emitroomMessages = async (roomId: string) => {
   if (io) {
     const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
-    io.emit("roomMessages", { roomId, messages });
+    io.to(roomId).emit("roomMessages", { roomId, messages });
   } else {
     console.error("Socket.IO is not initialized");
   }
