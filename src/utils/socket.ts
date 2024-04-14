@@ -7,7 +7,7 @@ import { User } from "../models/user";
 
 let io: any;
 
-const init = (httpServer: any) => {
+export const init = (httpServer: any) => {
   io = new Server(httpServer);
 
   io.on("connection", (socket: socketIo.Socket) => {
@@ -20,7 +20,7 @@ const init = (httpServer: any) => {
   });
 };
 
-const joinRoom = async (roomId: string, userId: string) => {
+export const joinRoom = async (roomId: string, userId: string) => {
   if (io) {
     const user = await User.findOne({ _id: userId });
     //broadcast when a user connects to everyone except the newly joined client
@@ -30,27 +30,27 @@ const joinRoom = async (roomId: string, userId: string) => {
   }
 };
 
-const removeFromRoom = async (roomId: string, userId: string) => {
+export const emitRemoveUser = async (roomId: string, userId: string) => {
   if (io) {
     const user = await User.findOne({ _id: userId });
     //broadcast when a user connects to everyone except the newly joined client
-    io.broadcast.to(roomId).emit("joinRoom", `${user?.fullName} was removed from the chat room `);
+    io.broadcast.to(roomId).emit("removeUser", `${user?.fullName} was removed from the chat room `);
   } else {
     console.error("Socket.IO is not initialized");
   }
 };
 
-const leaveRoom = async (roomId: string, userId: string) => {
+export const leaveRoom = async (roomId: string, userId: string) => {
   if (io) {
     const user = await User.findOne({ _id: userId });
-    io.to(roomId).emit("joinRoom", `${user?.fullName} just left the chat room`);
+    io.to(roomId).emit("leaveRooom", `${user?.fullName} just left the chat room`);
   } else {
     console.error("Socket.IO is not initialized");
   }
 };
 
 
-const emitCourseLiked = (courseId: string, courseLikes: number) => {
+export const emitCourseLiked = (courseId: string, courseLikes: number) => {
   // Assuming courseId is string and courseLikes is number
   if (io) {
     // Check if io is initialized
@@ -60,7 +60,7 @@ const emitCourseLiked = (courseId: string, courseLikes: number) => {
   }
 };
 
-const emitcourseComments = async (courseId: string) => {
+export const emitcourseComments = async (courseId: string) => {
   if (io) {
     const comments = await courseComment.find({ course: courseId }).sort("createdAt");
     io.to(courseId).emit("courseComments", { courseId, comments });
@@ -69,7 +69,7 @@ const emitcourseComments = async (courseId: string) => {
   }
 };
 
-const emitroomMessages = async (roomId: string) => {
+export const emitroomMessages = async (roomId: string) => {
   if (io) {
     const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
     io.to(roomId).emit("roomMessages", { roomId, messages });
@@ -78,4 +78,4 @@ const emitroomMessages = async (roomId: string) => {
   }
 };
 
-export { init, emitCourseLiked, emitcourseComments, emitroomMessages };
+

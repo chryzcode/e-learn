@@ -5,7 +5,7 @@ import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/
 import { isImage } from "../utils/mediaType";
 import express from "express";
 import http from "http";
-import { init as initSocket, emitroomMessages } from "../utils/socket";
+import { init as initSocket, emitroomMessages, emitRemoveUser } from "../utils/socket";
 
 const app = express();
 const server = http.createServer(app);
@@ -100,14 +100,14 @@ export const deleteMessage = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ success: "Message deleted successfully" });
 };
 
-export const exitRoom = async (req: any, res: any) => {
+export const leaveRoom = async (req: any, res: any) => {
   const { roomId } = req.params;
   const { userId } = req.user;
   const room = await courseRoom.findOneAndUpdate({ _id: roomId }, { $pull: { users: userId } }, { new: true });
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  res.status(StatusCodes.OK).json({ success: "you have successfully exited the room" });
+  res.status(StatusCodes.OK).json({ success: "you have successfully left the room" });
 };
 
 export const inviteUserToRoom = async (req: any, res: any) => {
@@ -132,5 +132,6 @@ export const removeUser = async (req: any, res: any) => {
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
+  emitRemoveUser(room.id, userToRemove);
   res.status(StatusCodes.OK).json({ success: `${userToRemove} has been successfully sent off the room` });
 };
