@@ -1,7 +1,10 @@
 import socketIo from "socket.io";
 import { Server } from "http"; // Import Server type from "http" module
 import { courseComment } from "../models/course";
-import { roomMessage } from "../models/chatRoom";
+import { roomMessage, courseRoom } from "../models/chatRoom";
+import { User } from "../models/user";
+
+const botName = "The E-Learn Bot";
 
 let io: any;
 
@@ -16,6 +19,16 @@ const init = (httpServer: any) => {
       console.log("A client disconnected");
     });
   });
+};
+
+const joinRoom = async (roomId: string, userId: string) => {
+  if (io) {
+    const user = await User.findOne({ _id: userId });
+    const room = await courseRoom.findOne({ _id: roomId });
+    io.broadcast.to(room).emit("joinRoom", `${user?.fullName} has joined the chat`);
+  } else {
+    console.error("Socket.IO is not initialized");
+  }
 };
 
 const emitCourseLiked = (courseId: string, courseLikes: number) => {
