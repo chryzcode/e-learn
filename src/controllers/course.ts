@@ -8,6 +8,7 @@ import http from "http";
 import { init as initSocket, emitCourseLiked, emitcourseComments } from "../utils/socket";
 import { makeCoursePayment } from "../utils/stripe";
 import { courseRoom } from "../models/chatRoom";
+import { joinRoom } from "../utils/socket";
 
 const app = express();
 const server = http.createServer(app);
@@ -108,6 +109,7 @@ export const enrollForCourse = async (req: any, res: any) => {
       throw new NotFoundError("Course room not found");
     }
     room.users.push(userId);
+    joinRoom(courseId, userId);
     res.status(StatusCodes.OK).json({ success: "enrollment successful" });
   } else {
     const payment = await makeCoursePayment(userId, courseId);
