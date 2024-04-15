@@ -122,7 +122,7 @@ const courseWishlistSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  course: [
+  courses: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
