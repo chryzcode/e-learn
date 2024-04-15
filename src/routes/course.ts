@@ -18,6 +18,8 @@ import {
   courseComments,
   editComment,
   deleteComment,
+  addCourseWishlist,
+  getBookmarkCourses,
 } from "../controllers/course";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -42,5 +44,7 @@ router
   .route("/:courseId/comment/:commentId")
   .put(authenticateUser, authenticateStudent, editComment)
   .delete(authenticateUser, authenticateStudent, deleteComment);
+router.route("/:courseId/bookmark").post(authenticateUser, addCourseWishlist)
+router.route("/bookmarks").get(authenticateUser, getBookmarkCourses);
 
 export default router;
