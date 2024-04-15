@@ -131,10 +131,26 @@ const courseWishlistSchema = new mongoose.Schema({
 });
 
 
-export const courseWishlist = mongoose.model("courseWishlist", courseWishlistSchema);
+const courseBookmarkSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  course: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
+  ],
+});
+
+
+
 export const Course = mongoose.model("Course", courseSchema);
 export const courseStudent = mongoose.model("courseStudent", courseStudentSchema);
 export const courseLike = mongoose.model("courseLike", courseLikeSchema);
 export const courseRating = mongoose.model("courseRating", courseRatingSchema);
 export const courseComment = mongoose.model("courseComment", courseCommentSchema);
 export const courseCategory = mongoose.model("courseCategory", courseCategorySchema);
+export const courseWishlist = mongoose.model("courseWishlist", courseWishlistSchema);
+export const courseBookmark = mongoose.model("courseBookmark", courseBookmarkSchema);
