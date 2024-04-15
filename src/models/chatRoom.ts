@@ -31,5 +31,6 @@ const roomMessageSchema = new mongoose.Schema(
   }
 );
 
+
 export const courseRoom = mongoose.model("courseRoom", courseRoomSchema);
 export const roomMessage = mongoose.model("roomMessage", roomMessageSchema);

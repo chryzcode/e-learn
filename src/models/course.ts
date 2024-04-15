@@ -117,8 +117,21 @@ const courseCategorySchema = new mongoose.Schema({
   },
 });
 
+const courseWishlistSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  course: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
+  ],
+});
 
 
+export const courseWishlist = mongoose.model("courseWishlist", courseWishlistSchema);
 export const Course = mongoose.model("Course", courseSchema);
 export const courseStudent = mongoose.model("courseStudent", courseStudentSchema);
 export const courseLike = mongoose.model("courseLike", courseLikeSchema);
