@@ -1,5 +1,13 @@
 import cloudinary from "cloudinary";
-import { Course, courseCategory, courseStudent, courseLike, courseRating, courseComment } from "../models/course";
+import {
+  Course,
+  courseCategory,
+  courseStudent,
+  courseLike,
+  courseRating,
+  courseComment,
+  courseWishlist,
+} from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isVideo } from "../utils/mediaType";
@@ -109,6 +117,7 @@ export const enrollForCourse = async (req: any, res: any) => {
       throw new NotFoundError("Course room not found");
     }
     room.users.push(userId);
+    await room.save();
     joinRoom(courseId, userId);
     res.status(StatusCodes.OK).json({ success: "enrollment successful" });
   } else {
@@ -274,4 +283,21 @@ export const deleteComment = async (req: any, res: any) => {
   }
   emitcourseComments(courseId);
   res.status(StatusCodes.OK).json({ success: "comment deleted successfully" });
+};
+
+export const addCourseWishlist = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.params;
+  let userWishlist = await courseWishlist.findOne({ user: userId });
+  if (!userWishlist) {
+    userWishlist = await courseWishlist.create({ user: userId });
+  }
+  if (!userWishlist.courses.includes(courseId)) {
+    userWishlist.courses.push(courseId);
+    await userWishlist.save(); // Save changes to the wishlist
+  } else {
+    throw new BadRequestError(`Course is bookmarked already`);
+  }
+
+  res.status(StatusCodes.OK).json({ userWishlist });
 };

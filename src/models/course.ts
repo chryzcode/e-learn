@@ -130,21 +130,18 @@ const courseWishlistSchema = new mongoose.Schema({
   ],
 });
 
-
 const courseBookmarkSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  course: [
+  courses: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
     },
   ],
 });
-
-
 
 export const Course = mongoose.model("Course", courseSchema);
 export const courseStudent = mongoose.model("courseStudent", courseStudentSchema);
