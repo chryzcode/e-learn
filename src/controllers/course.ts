@@ -302,13 +302,13 @@ export const addCourseWishlist = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ userWishlist });
 };
 
-export const getBookmarkCourses = async (req: any, res: any) => {
+export const getUserWishlist = async (req: any, res: any) => {
   const { userId } = req.user;
   const userWishlist = await courseWishlist.findOne({ user: userId }).populate("courses");
   if (!userWishlist) {
-    res.status(StatusCodes.OK).json({ bookmarkedCourses: [] });
+    res.status(StatusCodes.OK).json({ wishlist: [] });
     return;
   }
-  const bookmarkedCourses = userWishlist.courses;
-  res.status(StatusCodes.OK).json({ bookmarkedCourses });
+  const wishlist = userWishlist.courses;
+  res.status(StatusCodes.OK).json({ wishlist });
 };
