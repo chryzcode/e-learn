@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { courseRoom, roomMessage } from "../models/chatRoom";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isImage } from "../utils/mediaType";
-
+import { io } from "../utils/socket";
 
 export const userRooms = async (req: any, res: any) => {
   const { userId } = req.user;
@@ -19,6 +19,7 @@ export const roomMessages = async (req: any, res: any) => {
     throw new NotFoundError(`Room does not exist`);
   }
   const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
+  io.to(roomId).emit("roomMessages", messages);
   res.status(StatusCodes.OK).json({ messages });
 };
 
