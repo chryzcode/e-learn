@@ -5,7 +5,6 @@ import { courseStudent, Course } from "../models/course";
 import { transporter } from "../utils/transporter";
 import { User } from "../models/user";
 import { courseRoom } from "../models/chatRoom";
-import { joinRoom } from "../utils/socket";
 
 export const paymentSuccessful = async (req: any, res: any) => {
   const { paymentId } = req.params;
@@ -33,7 +32,6 @@ export const paymentSuccessful = async (req: any, res: any) => {
     throw new NotFoundError("Course room not found");
   }
   room.users.push(student?.id);
-  joinRoom(course?.id, student?.id);
   const maildata = {
     from: process.env.Email_User,
     to: instructor?.email,
