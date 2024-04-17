@@ -30,6 +30,12 @@ io.on("connection", socket => {
     socket.broadcast.to(room?.id).emit("joinRoom", `${user?.fullName} just joined the chat room `);
   });
 
+  socket.on("removeUser", async (userId: string, roomId: string) => {
+    const user = await User.findOne({ _id: userId });
+    const room = await courseRoom.findOne({ _id: roomId });
+    socket.broadcast.to(room?.id).emit("message", `${user?.fullName} was removed from the chat room `);
+  });
+
   // Handle disconnections
   socket.on("disconnect", () => {
     console.log("A client disconnected");
