@@ -49,24 +49,16 @@ io.on("connection", socket => {
       io.to(room?.id).emit("message", `${user.fullName} has left the chat`);
     }
   });
-});
 
-export const emitCourseLiked = (courseId: string, courseLikes: number) => {
-  // Assuming courseId is string and courseLikes is number
-  if (io) {
-    // Check if io is initialized
+  socket.on("courseLiked", async (courseId: string, courseLikes: number) => {
     io.to(courseId).emit("courseLiked", { courseId, courseLikes });
-  } else {
-    console.error("Socket.IO is not initialized");
-  }
-};
+  });
 
-export const emitcourseComments = async (courseId: string) => {
-  if (io) {
+  socket.on("courseComments", async (courseId: string) => {
     const comments = await courseComment.find({ course: courseId }).sort("createdAt");
     io.to(courseId).emit("courseComments", { courseId, comments });
-  } else {
-    console.error("Socket.IO is not initialized");
-  }
-};
+  });
 
+  //Runs when the client disconnects
+  socket.on("disconnect", () => {});
+});
