@@ -21,7 +21,7 @@ export const userRooms = async (req: any, res: any) => {
 
 export const roomMessages = async (req: any, res: any) => {
   const { userId } = req.user;
-  const { roomId } = req.course;
+  const { roomId } = req.params;
   const room = await courseRoom.findOne({ _id: roomId, users: userId });
   if (!room) {
     throw new NotFoundError(`Room does not exist`);

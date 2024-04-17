@@ -1,53 +1,55 @@
-import socketIo from "socket.io";
-import { Server } from "http"; // Import Server type from "http" module
+import { createServer } from "node:http";
+import { Server } from "socket.io";
+import express from "express";
 import { Course, courseComment } from "../models/course";
 import { roomMessage, courseRoom } from "../models/chatRoom";
 import { User } from "../models/user";
 
-let io: any;
+const app = express();
+const server = createServer(app);
+const io = new Server(server);
 
-export const init = (httpServer: any) => {
-  io = new Server(httpServer);
-
-  io.on("connection", (socket: socketIo.Socket) => {
-    console.log("A client connected");
-
-    // Handle disconnections
-    socket.on("disconnect", () => {
-      console.log("A client disconnected");
-    });
-  });
-};
-
-export const joinRoom = async (courseId: string, userId: string) => {
-  if (io) {
+io.on("connection", socket => {
+  socket.on("joinRoom", async (courseId: string, userId: string) => {
     const room = await courseRoom.findOne({ course: courseId });
     const user = await User.findOne({ _id: userId });
-    //broadcast when a user connects to everyone except the newly joined client
-    io.broadcast.to(room?.id).emit("joinRoom", `${user?.fullName} just joined the chat room `);
-  } else {
-    console.error("Socket.IO is not initialized");
-  }
-};
+    socket.join(room?.id);
 
-export const emitRemoveUser = async (roomId: string, userId: string) => {
-  if (io) {
-    const user = await User.findOne({ _id: userId });
-    //broadcast when a user connects to everyone except the newly joined client
-    io.broadcast.to(roomId).emit("removeUser", `${user?.fullName} was removed from the chat room `);
-  } else {
-    console.error("Socket.IO is not initialized");
-  }
-};
+    // Welcome message only for the current user
+    socket.emit("message", `Welcome! ${user?.fullName}`);
 
-export const emitLeaveRoom = async (roomId: string, userId: string) => {
-  if (io) {
+    //broadcast when a user connects to everyone except the newly joined client
+    socket.broadcast.to(room?.id).emit("joinRoom", `${user?.fullName} just joined the chat room `);
+  });
+
+  socket.on("chatMessage", async (message: any, userId: string, roomId: string) => {
     const user = await User.findOne({ _id: userId });
-    io.to(roomId).emit("leaveRooom", `${user?.fullName} just left the chat room`);
-  } else {
-    console.error("Socket.IO is not initialized");
-  }
-};
+    const room = await courseRoom.findOne({ _id: roomId });
+    io.to(room?.id).emit("message", (user?.fullName, message));
+  });
+
+  socket.on("roomMessages", async (roomId: string) => {
+    const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
+    io.to(roomId).emit("roomMessages", messages);
+  });
+
+  socket.on("removeUser", async (userId: string, roomId: string) => {
+    const user = await User.findOne({ _id: userId });
+    const room = await courseRoom.findOne({ _id: roomId });
+    socket.broadcast.to(room?.id).emit("message", `${user?.fullName} was removed from the chat room `);
+  });
+
+  //Runs when the client leaves room
+  socket.on("leaveRooom", async (userId: string, roomId: string) => {
+    // to everyone chat room
+    const user = await User.findOne({ _id: userId });
+    const room = await courseRoom.findOne({ _id: roomId });
+
+    if (user) {
+      io.to(room?.id).emit("message", `${user.fullName} has left the chat`);
+    }
+  });
+});
 
 export const emitCourseLiked = (courseId: string, courseLikes: number) => {
   // Assuming courseId is string and courseLikes is number
@@ -68,11 +70,3 @@ export const emitcourseComments = async (courseId: string) => {
   }
 };
 
-export const emitroomMessages = async (roomId: string) => {
-  if (io) {
-    const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
-    io.to(roomId).emit("roomMessages", { roomId, messages });
-  } else {
-    console.error("Socket.IO is not initialized");
-  }
-};
