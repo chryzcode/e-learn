@@ -7,9 +7,6 @@ import express from "express";
 import http from "http";
 
 
-const app = express();
-const server = http.createServer(app);
-
 export const userRooms = async (req: any, res: any) => {
   const { userId } = req.user;
   const rooms = await courseRoom.find({ users: userId });
