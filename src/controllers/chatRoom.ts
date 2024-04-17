@@ -113,9 +113,6 @@ export const inviteUserToRoom = async (req: any, res: any) => {
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  const io = req.app.locals.io as Socket;
-  io.join(room.id);
-  
   res.status(StatusCodes.OK).json({ success: "you have successfully joined the room" });
 };
 
