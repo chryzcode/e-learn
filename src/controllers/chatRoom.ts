@@ -5,13 +5,10 @@ import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/
 import { isImage } from "../utils/mediaType";
 import express from "express";
 import http from "http";
-import { init as initSocket, emitroomMessages, emitRemoveUser, emitLeaveRoom } from "../utils/socket";
+
 
 const app = express();
 const server = http.createServer(app);
-
-// Initialize Socket.IO
-initSocket(server);
 
 export const userRooms = async (req: any, res: any) => {
   const { userId } = req.user;
@@ -27,7 +24,6 @@ export const roomMessages = async (req: any, res: any) => {
     throw new NotFoundError(`Room does not exist`);
   }
   const messages = await roomMessage.find({ room: roomId }).sort("createdAt");
-  emitroomMessages(roomId);
   res.status(StatusCodes.OK).json({ messages });
 };
 
@@ -56,7 +52,6 @@ export const sendMessage = async (req: any, res: any) => {
     throw new NotFoundError(`Room does not exist`);
   }
   const message = await roomMessage.create({ ...req.body });
-  emitroomMessages(roomId);
   res.status(StatusCodes.OK).json({ message });
 };
 
@@ -85,7 +80,6 @@ export const editMessage = async (req: any, res: any) => {
   if (!message) {
     throw new NotFoundError(`Message not found`);
   }
-  emitroomMessages(roomId);
   res.status(StatusCodes.OK).json({ message });
 };
 
@@ -96,7 +90,6 @@ export const deleteMessage = async (req: any, res: any) => {
   if (!message) {
     throw new NotFoundError(`Message not found`);
   }
-  emitroomMessages(roomId);
   res.status(StatusCodes.OK).json({ success: "Message deleted successfully" });
 };
 
@@ -107,7 +100,6 @@ export const leaveRoom = async (req: any, res: any) => {
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  emitLeaveRoom(roomId, userId);
   res.status(StatusCodes.OK).json({ success: "you have successfully left the room" });
 };
 
@@ -133,6 +125,5 @@ export const removeUser = async (req: any, res: any) => {
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  emitRemoveUser(room.id, userToRemove);
   res.status(StatusCodes.OK).json({ success: `${userToRemove} has been successfully sent off the room` });
 };
