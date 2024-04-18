@@ -5,7 +5,6 @@ import { User } from "../models/user";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isImage } from "../utils/mediaType";
 import { io } from "../utils/socket";
-import { Socket } from "socket.io";
 
 export const userRooms = async (req: any, res: any) => {
   const { userId } = req.user;

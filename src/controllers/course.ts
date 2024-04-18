@@ -13,9 +13,7 @@ import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/
 import { isVideo } from "../utils/mediaType";
 import { makeCoursePayment } from "../utils/stripe";
 import { courseRoom } from "../models/chatRoom";
-
-
-
+import { io } from "../utils/socket";
 
 export const createCourse = async (req: any, res: any) => {
   const { userId } = req.user;
@@ -203,6 +201,7 @@ export const likeCourse = async (req: any, res: any) => {
     await courseLike.create({ student: userId, course: courseId });
   }
   const courseLikes = (await courseLike.find({ course: courseId })).length;
+  io.to(courseId).emit("courseLiked", { courseId, courseLikes });
   res.status(StatusCodes.OK).json({ courseLikes });
 };
 
@@ -244,6 +243,7 @@ export const courseComments = async (req: any, res: any) => {
     throw new NotFoundError(`Course with ${courseId} does not exist`);
   }
   const comments = await courseComment.find({ course: courseId });
+  io.to(courseId).emit("courseComments", { courseId, comments });
   res.status(StatusCodes.OK).json({ comments });
 };
 
