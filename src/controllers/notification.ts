@@ -15,7 +15,7 @@ export const markAllNotificationAsRead = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ notifications });
 };
 
-export const maekANotificationAsReadasync = async (req: any, res: any) => {
+export const markANotificationAsRead = async (req: any, res: any) => {
   const { userId } = req.user;
   const { notificationId } = req.params;
   const notification = await Notification.findOneAndUpdate(
