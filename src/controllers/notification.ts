@@ -28,3 +28,13 @@ export const maekANotificationAsReadasync = async (req: any, res: any) => {
   }
   res.status(StatusCodes.OK).json({ notification });
 };
+
+export const notificationDetail = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { notificationId } = req.params;
+  const notification = await Notification.findOne({ _id: notificationId, to: userId });
+  if (!notification) {
+    throw new NotFoundError(`Notification does not exists`);
+  }
+  res.status(StatusCodes.OK).json(notification.url);
+};
