@@ -18,6 +18,10 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       required: [true, "message field is required"],
     },
+    read: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
