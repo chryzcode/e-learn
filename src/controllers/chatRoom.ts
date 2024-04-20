@@ -44,7 +44,7 @@ export const sendMessage = async (req: any, res: any) => {
       throw new BadRequestError("error uploading video on cloudinary");
     }
   }
-  const room = await courseRoom.findOne({ course: roomId, users: userId });
+  const room = await courseRoom.findOne({ _id: roomId, users: userId });
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
