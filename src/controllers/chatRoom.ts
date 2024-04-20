@@ -117,7 +117,10 @@ export const inviteUserToRoom = async (req: any, res: any) => {
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  
+
+  if (room.users.includes(userId)) {
+    throw new BadRequestError(`User is already in the room`)
+  }
   room = await courseRoom.findOneAndUpdate({ course: courseId }, { $push: { users: userId } }, { new: true });
   res.status(StatusCodes.OK).json({ success: "you have successfully joined the room" });
 };
