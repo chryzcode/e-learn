@@ -112,11 +112,13 @@ export const leaveRoom = async (req: any, res: any) => {
 
 export const inviteUserToRoom = async (req: any, res: any) => {
   const { courseId } = req.course;
-  const { userId } = req.user;
-  const room = await courseRoom.findOneAndUpdate({ course: courseId }, { $push: { users: userId } }, { new: true });
+  const { userId } = req.params;
+  let room = await courseRoom.findOne({ course: courseId })
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
+  
+  room = await courseRoom.findOneAndUpdate({ course: courseId }, { $push: { users: userId } }, { new: true });
   res.status(StatusCodes.OK).json({ success: "you have successfully joined the room" });
 };
 
