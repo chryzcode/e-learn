@@ -10,7 +10,6 @@ import {
   removeUser,
 } from "../controllers/chatRoom";
 import authenticateUser from "../middleware/authentication";
-import authenticateStudent from "../middleware/student";
 import authenticateInstructor from "../middleware/instructor";
 
 const router = express.Router();

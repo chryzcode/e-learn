@@ -129,16 +129,14 @@ export const inviteUserToRoom = async (req: any, res: any) => {
 };
 
 export const removeUser = async (req: any, res: any) => {
-  const { courseId } = req.course;
-  const { userId } = req.user;
-  const userToRemove = req.params.userId;
+  const { roomId, userId } = req.params;
   const room = await courseRoom.findOneAndUpdate(
-    { course: courseId, users: userToRemove },
-    { $pull: { users: userToRemove } },
+    { _id: roomId, users: userId },
+    { $pull: { users: userId } },
     { new: true }
   );
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  res.status(StatusCodes.OK).json({ success: `${userToRemove} has been successfully sent off the room` });
+  res.status(StatusCodes.OK).json({ success: `${userId} has been successfully sent off the room` });
 };
