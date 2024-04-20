@@ -1,6 +1,7 @@
 import cloudinary from "cloudinary";
 import { StatusCodes } from "http-status-codes";
 import { courseRoom, roomMessage } from "../models/chatRoom";
+import { Course } from "../models/course";
 import { User } from "../models/user";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isImage } from "../utils/mediaType";
@@ -112,11 +113,17 @@ export const leaveRoom = async (req: any, res: any) => {
 
 export const inviteUserToRoom = async (req: any, res: any) => {
   const { courseId } = req.course;
-  const { userId } = req.user;
-  const room = await courseRoom.findOneAndUpdate({ course: courseId }, { $push: { users: userId } }, { new: true });
+  const { userId } = req.params;
+  const room = await courseRoom.findOne({ course: courseId })
+  const course = await Course.findOne({_id: room?.course})
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
+
+  if (room.users.includes(userId)) {
+    throw new BadRequestError(`User is already in the room`)
+  }
+ await courseRoom.findOneAndUpdate({ course: courseId }, { $push: { users: userId } }, { new: true });
   res.status(StatusCodes.OK).json({ success: "you have successfully joined the room" });
 };
 
