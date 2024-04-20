@@ -112,18 +112,24 @@ export const leaveRoom = async (req: any, res: any) => {
 };
 
 export const inviteUserToRoom = async (req: any, res: any) => {
-  const { courseId } = req.course;
+  const { roomId } = req.params;
   const { userId } = req.params;
-  const room = await courseRoom.findOne({ course: courseId })
-  const isStudent = await courseStudent.findOne({_id: room?.course})
+  const room = await courseRoom.findOne({ id: roomId });
+  console.log(room);
+  const isStudent = await courseStudent.findOne({ course: room?.course, student: userId });
+  console.log(isStudent);
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
 
-  if (room.users.includes(userId)) {
-    throw new BadRequestError(`User is already in the room`)
+  if (!isStudent) {
+    throw new BadRequestError(`You can not add a user who has not registered for the course`);
   }
- await courseRoom.findOneAndUpdate({ course: courseId }, { $push: { users: userId } }, { new: true });
+
+  if (room.users.includes(userId)) {
+    throw new BadRequestError(`User is already in the room`);
+  }
+  await courseRoom.findOneAndUpdate({ id: roomId }, { $push: { users: userId } }, { new: true });
   res.status(StatusCodes.OK).json({ success: "you have successfully joined the room" });
 };
 
