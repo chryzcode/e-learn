@@ -1,7 +1,7 @@
 import cloudinary from "cloudinary";
 import { StatusCodes } from "http-status-codes";
 import { courseRoom, roomMessage } from "../models/chatRoom";
-import { Course } from "../models/course";
+import { courseStudent } from "../models/course";
 import { User } from "../models/user";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isImage } from "../utils/mediaType";
@@ -112,32 +112,31 @@ export const leaveRoom = async (req: any, res: any) => {
 };
 
 export const inviteUserToRoom = async (req: any, res: any) => {
-  const { courseId } = req.course;
-  const { userId } = req.params;
-  const room = await courseRoom.findOne({ course: courseId })
-  const course = await Course.findOne({_id: room?.course})
+  const { roomId, userId } = req.params;
+  const room = await courseRoom.findOne({ _id: roomId });
+  const isStudent = await courseStudent.findOne({ course: room?.course, student: userId });
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-
-  if (room.users.includes(userId)) {
-    throw new BadRequestError(`User is already in the room`)
+  if (!isStudent) {
+    throw new BadRequestError(`You can not add a user who has not registered for the course`);
   }
- await courseRoom.findOneAndUpdate({ course: courseId }, { $push: { users: userId } }, { new: true });
+  if (room.users.includes(userId)) {
+    throw new BadRequestError(`User is already in the room`);
+  }
+  await courseRoom.findOneAndUpdate({ _id: roomId }, { $push: { users: userId } }, { new: true });
   res.status(StatusCodes.OK).json({ success: "you have successfully joined the room" });
 };
 
 export const removeUser = async (req: any, res: any) => {
-  const { courseId } = req.course;
-  const { userId } = req.user;
-  const userToRemove = req.params.userId;
+  const { roomId, userId } = req.params;
   const room = await courseRoom.findOneAndUpdate(
-    { course: courseId, users: userToRemove },
-    { $pull: { users: userToRemove } },
+    { _id: roomId, users: userId },
+    { $pull: { users: userId } },
     { new: true }
   );
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
-  res.status(StatusCodes.OK).json({ success: `${userToRemove} has been successfully sent off the room` });
+  res.status(StatusCodes.OK).json({ success: `${userId} has been successfully sent off the room` });
 };
