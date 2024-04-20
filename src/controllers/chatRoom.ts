@@ -56,7 +56,11 @@ export const sendMessage = async (req: any, res: any) => {
 export const editMessage = async (req: any, res: any) => {
   const { messageId, roomId } = req.params;
   const { userId } = req.user;
-  if (req.body.media) {
+  var message = await roomMessage.findOne({ _id: messageId, room: roomId, sender: userId });
+  if (!message) {
+    throw new NotFoundError(`Message not found`);
+  }
+  if (req.body.media && message.media) {
     if (isImage(req.body.media) == false) {
       throw new BadRequestError("Image/ Media type not supported");
     }
@@ -71,13 +75,11 @@ export const editMessage = async (req: any, res: any) => {
       throw new BadRequestError("error uploading video on cloudinary");
     }
   }
-  const message = await roomMessage.findOneAndUpdate({ _id: messageId, room: roomId, sender: userId }, req.body, {
+  message = await roomMessage.findOneAndUpdate({ _id: messageId, room: roomId, sender: userId }, req.body, {
     new: true,
     runValidators: true,
   });
-  if (!message) {
-    throw new NotFoundError(`Message not found`);
-  }
+
   io.to(roomId).emit("message", message);
   res.status(StatusCodes.OK).json({ message });
 };
