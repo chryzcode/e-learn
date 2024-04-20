@@ -19,7 +19,7 @@ router.route("/").get(authenticateUser, userRooms);
 router.route("/:roomId").get(authenticateUser, roomMessages).post(authenticateUser, sendMessage);
 router.route("/:roomId/message/:messageId").put(authenticateUser, editMessage).delete(authenticateUser, deleteMessage);
 router.route("/:roomId/exit").post(authenticateUser, leaveRoom);
-router.route("/:roomId/invite/:userId").post(authenticateUser, authenticateStudent, inviteUserToRoom);
+router.route("/:roomId/invite/:userId").post(authenticateUser, authenticateInstructor, inviteUserToRoom);
 router.route("/:roomId/remove/:userId").post(authenticateUser, authenticateInstructor, removeUser);
 
 export default router;
