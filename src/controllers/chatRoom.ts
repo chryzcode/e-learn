@@ -60,7 +60,10 @@ export const editMessage = async (req: any, res: any) => {
   if (!message) {
     throw new NotFoundError(`Message not found`);
   }
-  if (req.body.media && message.media) {
+  if (req.body.media) {
+    if (!message.media) {
+      throw new BadRequestError(`you can add media to a message that does not initially have`);
+    }
     if (isImage(req.body.media) == false) {
       throw new BadRequestError("Image/ Media type not supported");
     }
