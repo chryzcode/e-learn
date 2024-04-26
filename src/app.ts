@@ -29,7 +29,10 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req: any, res: any) => {
-  res.send("E-learn");
+  res.send(
+    `E-learn APIs  <p>Checkout the <a href="https://documenter.getpostman.com/view/31014226/2sA3Bt3VVm#19978277-2621-4a96-abe2-dc9430f6fa06">E-learn APIs Documentation</a></p>`
+  );
+
 });
 
 import userRoute from "./routes/user";
