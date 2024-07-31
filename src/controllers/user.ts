@@ -80,7 +80,7 @@ export const signIn = async (req: any, res: any) => {
   var token = user.createJWT();
   await User.findOneAndUpdate({ token: token });
   token = user.token;
-  res.status(StatusCodes.OK).json({ user: { fullName: user.fullName }, token });
+  res.status(StatusCodes.OK).json({ user, token });
 };
 
 export const logout = async (req: any, res: any) => {

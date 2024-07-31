@@ -11,19 +11,19 @@ export default async (req: any, res: any, next: any) => {
     throw new UnauthenticatedError("Authentication invalid");
   }
   const token = authHeader.split(" ")[1];
-  const user = await User.findOne({ token: token, verified: true });
-  if (user) {
-    try {
-      const payload: any = jwt.verify(token, JWT_SECRET);
-      // attach the user to the job routes
 
-      req.user = { userId: payload.userId, fullName: payload.fullName };
-
-      next();
-    } catch (error) {
+  try {
+    const payload: any = jwt.verify(token, JWT_SECRET);
+    // attach the user to the job routes
+    const user = await User.findOne({ _id: payload.userId, verified: true });
+    if (!user) {
       throw new UnauthenticatedError("Authentication invalid");
     }
-  } else {
+
+    req.user = { userId: payload.userId, fullName: payload.fullName };
+
+    next();
+  } catch (error) {
     throw new UnauthenticatedError("Authentication invalid");
   }
 };
