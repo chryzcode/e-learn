@@ -164,8 +164,9 @@ export const sendForgotPasswordLink = async (req: any, res: any) => {
   }
   const user = await User.findOne({ email: email });
   if (!user) {
-    throw new NotFoundError("User does not exists");
+    throw new NotFoundError("User does not exist");
   }
+
   const maildata = {
     from: process.env.Email_User,
     to: user.email,
@@ -174,11 +175,12 @@ export const sendForgotPasswordLink = async (req: any, res: any) => {
       user.id
     }/?token=${encodeURIComponent(linkVerificationtoken)}">link</a> for verification. Link expires in 30 mins.</p>`,
   };
+
   transporter.sendMail(maildata, (error, info) => {
     if (error) {
-      res.status(StatusCodes.BAD_REQUEST).json({ error: "Mail not sent due to errors" });
+      return res.status(StatusCodes.BAD_REQUEST).json({ msg: "Mail not sent due to errors" });
     }
-    res.status(StatusCodes.OK).json({ success: "Check you email to change your password" });
+    res.status(StatusCodes.OK).json({ msg: "Mail succesfull" });
   });
 };
 
