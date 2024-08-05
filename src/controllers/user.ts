@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
 
 const uniqueID = uuidv4();
 const domain = process.env.DOMAIN || "http://localhost:8000/";
+const FRONTEND_DOMAIN = process.env.FRONTEND_DOMAIN || "http://localhost:3000/";
 
 const linkVerificationtoken = generateToken(uniqueID);
 
@@ -97,7 +98,7 @@ export const verifyAccount = async (req: any, res: any) => {
   try {
     jwt.verify(token, secretKey);
     await User.findOneAndUpdate({ _id: userId }, { verified: true }, { new: true, runValidators: true });
-    res.status(StatusCodes.OK).json({ success: "User has been verified successfully" });
+    res.status(StatusCodes.OK).redirect(`${FRONTEND_DOMAIN}auth/sign-in`);
   } catch (error) {
     console.error("Token verification failed:", error);
     res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid or expired token" });
