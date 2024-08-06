@@ -1,11 +1,11 @@
 import "dotenv/config";
 import { User } from "../models/user";
 import { transporter } from "../utils/transporter";
-import { generateToken } from "../utils/generateToken";
+import { generateToken, generateRefreshToken } from "../utils/generateToken";
 import { v4 as uuidv4 } from "uuid";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import cloudinary from "cloudinary";
 import bcrypt from "bcryptjs";
 
@@ -14,6 +14,7 @@ const domain = process.env.DOMAIN || "http://localhost:8000/";
 const FRONTEND_DOMAIN = process.env.FRONTEND_DOMAIN || "http://localhost:3000/";
 
 const linkVerificationtoken = generateToken(uniqueID);
+const refreshToken = generateRefreshToken(uniqueID);
 
 export const signUp = async (req: any, res: any) => {
   const user: any = await User.create({ ...req.body });
@@ -171,7 +172,7 @@ export const sendForgotPasswordLink = async (req: any, res: any) => {
     from: process.env.Email_User,
     to: user.email,
     subject: `${user.fullName} you forgot your password`,
-    html: `<p>Please use the following <a href="${FRONTEND_DOMAIN}auth/forgot-password/${
+    html: `<p>Please use the following <a href="${FRONTEND_DOMAIN}auth/change-password/${
       user.id
     }/${encodeURIComponent(linkVerificationtoken)}">link</a> for verification. Link expires in 30 mins.</p>`,
   };
@@ -184,13 +185,16 @@ export const sendForgotPasswordLink = async (req: any, res: any) => {
   });
 };
 
+
 export const verifyForgotPasswordToken = async (req: any, res: any) => {
   const token = req.params.token;
   const userId = req.params.userId;
-  const secretKey: any = process.env.JWT_SECRET;
+  const secretKey = process.env.JWT_SECRET as string;
+  const refreshSecretKey = process.env.JWT_REFRESH_SECRET as string;
   let { password } = req.body;
   try {
     jwt.verify(token, secretKey);
+    // Token is valid, proceed with password change
     const salt = await bcrypt.genSalt(10);
     password = await bcrypt.hash(password, salt);
     const user = await User.findOneAndUpdate(
@@ -201,7 +205,25 @@ export const verifyForgotPasswordToken = async (req: any, res: any) => {
 
     res.status(StatusCodes.OK).json({ user });
   } catch (error) {
-    console.error("Token verification failed:", error);
-    res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid or expired token" });
+    if (error instanceof jwt.TokenExpiredError) {
+      // Token expired, check the refresh token
+      const refreshToken = req.body.refreshToken;
+      try {
+        const decoded = jwt.verify(refreshToken, refreshSecretKey) as JwtPayload;
+        if (typeof decoded !== "string" && decoded.id === userId) {
+          // Refresh token is valid, issue a new token
+          const newToken = generateToken(userId);
+          res.status(StatusCodes.OK).json({ newToken });
+        } else {
+          res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid refresh token" });
+        }
+      } catch (refreshError) {
+        console.error("Refresh token verification failed:", refreshError);
+        res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid or expired refresh token" });
+      }
+    } else {
+      console.error("Token verification failed:", error);
+      res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid token" });
+    }
   }
 };
