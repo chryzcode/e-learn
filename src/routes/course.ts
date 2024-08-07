@@ -24,10 +24,11 @@ import {
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
 import authenticateStudent from "../middleware/student";
+import { multerUpload } from "../utils/cloudinaryConfig";
 
 const router = express.Router();
 
-router.route("/").post(authenticateUser, authenticateInstructor, createCourse).get(allCourses);
+router.route("/").post(authenticateUser, authenticateInstructor, multerUpload.single("video"), createCourse).get(allCourses);
 router.route("/instructor/:instructorId").get(getAnInstructorCourses);
 router.route("/my-courses").get(authenticateUser, authenticateInstructor, instructorCourses);
 router.route("/categories").get(courseCategories);

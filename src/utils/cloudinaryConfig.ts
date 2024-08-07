@@ -17,6 +17,8 @@ const uploadToCloudinary = (file: Express.Multer.File): Promise<any> => {
       {
         folder: "E-Learn/Media/",
         resource_type: "auto",
+        quality: "auto:low", // Set quality to auto:low for automatic compression
+        eager: [{ format: "mp4", video_codec: "h264" }], // Convert to MP4 with H.264 codec for better compression
       },
       (error, result) => {
         if (error) {
@@ -29,10 +31,20 @@ const uploadToCloudinary = (file: Express.Multer.File): Promise<any> => {
   });
 };
 
+const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  // Accept images and videos
+  if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
+    cb(null, true);
+  } else {
+    // Pass null for the error and false to indicate unsupported file type
+    cb(null, false);
+  }
+};
 
 const multerUpload: Multer = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
+  fileFilter,
 });
 
 export { multerUpload, uploadToCloudinary };

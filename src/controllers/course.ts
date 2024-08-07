@@ -14,9 +14,12 @@ import { isVideo } from "../utils/mediaType";
 import { makeCoursePayment } from "../utils/stripe";
 import { courseRoom } from "../models/chatRoom";
 import { io } from "../utils/socket";
+import { uploadToCloudinary } from "../utils/cloudinaryConfig";
+
 
 export const createCourse = async (req: any, res: any) => {
   const { userId } = req.user;
+  console.log(req.body);
   req.body.instructor = userId;
 
   var category = await courseCategory.findOne({ name: req.body.category });
@@ -24,23 +27,26 @@ export const createCourse = async (req: any, res: any) => {
     category = await courseCategory.create({ name: req.body.category });
   }
 
+  console.log(category);
+
   req.body.category = category.id;
-  if (isVideo(req.body.video) == false) {
-    throw new BadRequestError("Video/ Media type not supported");
+
+  if (req.file) {
+    console.log(req.file.mimetype);
+    if (!isVideo(req.file)) {
+      throw new BadRequestError("Video/ Media type not supported");
+    }
+
+    // Handle video upload if provided
+    try {
+      const result = await uploadToCloudinary(req.file);
+      req.body.video = result.secure_url; // Use secure_url for HTTPS
+    } catch (error) {
+      console.error("Error uploading video to Cloudinary:", error);
+      return res.status(400).json({ error: "Error uploading video to Cloudinary" });
+    }
   }
-  try {
-    const result = await cloudinary.v2.uploader.upload(req.body.video, {
-      resource_type: "video",
-      folder: "E-Learn/Course/Video/",
-      use_filename: true,
-      quality: "auto:low", // Set quality to auto:low for automatic compression
-      eager: [{ format: "mp4", video_codec: "h264" }], // Convert to MP4 with H.264 codec for better compression
-    });
-    req.body.video = result.url;
-  } catch (error) {
-    console.error(error);
-    throw new BadRequestError("error uploading video on cloudinary");
-  }
+
   const course = await Course.create({ ...req.body });
   const room = await courseRoom.create({
     course: course.id,
@@ -49,6 +55,7 @@ export const createCourse = async (req: any, res: any) => {
   await room.save();
   res.status(StatusCodes.CREATED).json({ course });
 };
+
 
 export const allCourses = async (req: any, res: any) => {
   const courses = await Course.find({}).sort("createdAt");
