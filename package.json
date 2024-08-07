@@ -11,6 +11,7 @@
   "author": "chryzcode",
   "license": "ISC",
   "dependencies": {
+    "@types/multer": "^1.4.11",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.1.0",
     "cors": "^2.8.5",
@@ -22,6 +23,7 @@
     "http-status-codes": "^2.3.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.4",
+    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "socket.io": "^4.7.5",
     "stripe": "^14.23.0",

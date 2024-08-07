@@ -6,8 +6,8 @@ import { v4 as uuidv4 } from "uuid";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import cloudinary from "cloudinary";
 import bcrypt from "bcryptjs";
+import { uploadToCloudinary } from "../utils/cloudinaryConfig";
 
 const uniqueID = uuidv4();
 const domain = process.env.DOMAIN || "http://localhost:8000/";
@@ -126,23 +126,29 @@ export const getUser = async (req: any, res: any) => {
 
 export const updateUser = async (req: any, res: any) => {
   const { userId } = req.user;
+  const { avatar, password } = req.body;
   var user = await User.findOne({ _id: userId });
   if (!user) {
     throw new NotFoundError(`User with id ${userId} does not exist`);
   }
 
-  if (req.body.avatar) {
+
+  // Handle avatar upload if provided
+  if (avatar) {
     try {
-      const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: "E-Learn/User/Avatar/",
-        use_filename: true,
-      });
-      req.body.avatar = result.url;
+      const result = await uploadToCloudinary(avatar);
+      req.body.avatar = result.secure_url; // Use secure_url for HTTPS
     } catch (error) {
-      console.error(error);
-      throw new BadRequestError("error uploading image on cloudinary");
+      console.error("Error uploading avatar to Cloudinary:", error);
+      return res.status(400).json({ error: "Error uploading avatar to Cloudinary" });
     }
   }
+
+   if (password) {
+     const salt = await bcrypt.genSalt(10);
+     req.body.password = await bcrypt.hash(password, salt);
+   }
+
 
   user = await User.findOneAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
 
