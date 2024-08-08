@@ -145,7 +145,6 @@ export const updateUser = async (req: any, res: any) => {
     req.body.password = await bcrypt.hash(req.password, salt);
   }
 
-  console.log(req.body);
   // Update the user with the new data
   user = await User.findOneAndUpdate({ _id: userId }, req.body, {
     new: true,
