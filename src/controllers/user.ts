@@ -126,33 +126,32 @@ export const getUser = async (req: any, res: any) => {
 
 export const updateUser = async (req: any, res: any) => {
   const { userId } = req.user;
-  const { avatar, password } = req.body;
-  var user = await User.findOne({ _id: userId });
+
+  let user = await User.findById(userId);
+
+  // If user not found, throw an error
   if (!user) {
     throw new NotFoundError(`User with id ${userId} does not exist`);
   }
 
-
-  // Handle avatar upload if provided
-  if (avatar) {
-    try {
-      const result = await uploadToCloudinary(avatar);
-      req.body.avatar = result.secure_url; // Use secure_url for HTTPS
-    } catch (error) {
-      console.error("Error uploading avatar to Cloudinary:", error);
-      return res.status(400).json({ error: "Error uploading avatar to Cloudinary" });
-    }
+  // Handle image upload if file is present
+  if (req.file) {
+    const result = await uploadToCloudinary(req.file);
+    req.body.avatar = result.secure_url; // Set the Cloudinary URL to the image field
   }
 
-   if (password) {
-     const salt = await bcrypt.genSalt(10);
-     req.body.password = await bcrypt.hash(password, salt);
-   }
+  if (req.password) {
+    const salt = await bcrypt.genSalt(10);
+    req.body.password = await bcrypt.hash(req.password, salt);
+  }
 
-
-  user = await User.findOneAndUpdate({ _id: userId }, req.body, { new: true, runValidators: true });
-
-  res.status(StatusCodes.OK).json({ user });
+  // Update the user with the new data
+  user = await User.findOneAndUpdate({ _id: userId }, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  // Return success response
+  res.status(StatusCodes.OK).json({ success: "Profile updated successfully", user });
 };
 
 export const deleteUser = async (req: any, res: any) => {
@@ -178,9 +177,9 @@ export const sendForgotPasswordLink = async (req: any, res: any) => {
     from: process.env.Email_User,
     to: user.email,
     subject: `${user.fullName} you forgot your password`,
-    html: `<p>Please use the following <a href="${FRONTEND_DOMAIN}auth/change-password/${
-      user.id
-    }/${encodeURIComponent(linkVerificationtoken)}">link</a> for verification. Link expires in 30 mins.</p>`,
+    html: `<p>Please use the following <a href="${FRONTEND_DOMAIN}auth/change-password/${user.id}/${encodeURIComponent(
+      linkVerificationtoken
+    )}">link</a> for verification. Link expires in 30 mins.</p>`,
   };
 
   transporter.sendMail(maildata, (error, info) => {
@@ -190,7 +189,6 @@ export const sendForgotPasswordLink = async (req: any, res: any) => {
     res.status(StatusCodes.OK).json({ msg: "Mail succesfull" });
   });
 };
-
 
 export const verifyForgotPasswordToken = async (req: any, res: any) => {
   const token = req.params.token;
