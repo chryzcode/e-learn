@@ -23,7 +23,7 @@ export const signUp = async (req: any, res: any) => {
     from: process.env.Email_User,
     to: user.email,
     subject: `${user.fullName} verify your account`,
-    html: `<p>Please use the following <a href="${domain}auth/verify-account/?userId=${
+    html: `<p>Please use the following <a href="${domain}auth/verify-account/${
       user.id
     }/?token=${encodeURIComponent(
       linkVerificationtoken
@@ -63,9 +63,9 @@ export const signIn = async (req: any, res: any) => {
       from: process.env.Email_User,
       to: user.email,
       subject: `${user.fullName} verify your account`,
-      html: `<p>Please use the following <a href="${domain}auth/verify-account/?userId=${
+      html: `<p>Please use the following <a href="${domain}auth/verify-account/${
         user.id
-      }/?token=${encodeURIComponent(
+      }/${encodeURIComponent(
         linkVerificationtoken
       )}">link</a> to verify your account. Link expires in 10 mins.</p>`,
     };
