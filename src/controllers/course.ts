@@ -16,7 +16,6 @@ import { courseRoom } from "../models/chatRoom";
 import { io } from "../utils/socket";
 import { uploadToCloudinary } from "../utils/cloudinaryConfig";
 
-
 export const createCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   console.log(req.body);
@@ -24,10 +23,8 @@ export const createCourse = async (req: any, res: any) => {
 
   var category = await courseCategory.findOne({ name: req.body.category });
   if (!category) {
-    category = await courseCategory.create({ name: req.body.category });
+    throw new NotFoundError("Category does not exist");
   }
-
-  console.log(category);
 
   req.body.category = category.id;
 
@@ -55,7 +52,6 @@ export const createCourse = async (req: any, res: any) => {
   await room.save();
   res.status(StatusCodes.CREATED).json({ course });
 };
-
 
 export const allCourses = async (req: any, res: any) => {
   const courses = await Course.find({}).sort("createdAt");
@@ -149,7 +145,7 @@ export const editCourse = async (req: any, res: any) => {
   req.body.instructor = userId;
   var category = await courseCategory.findOne({ name: req.body.category });
   if (!category) {
-    category = await courseCategory.create({ name: req.body.category });
+    throw new NotFoundError("Category does not exist");
   }
   req.body.category = category.id;
   if (req.body.video) {
