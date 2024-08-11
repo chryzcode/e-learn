@@ -46,7 +46,7 @@ router.route("/categories").get(courseCategories);
 router.route("/categories/:categoryId").get(filterCourseByCategory);
 router.route("/free").get(freeCourses);
 router.route("/enroll/:courseId").post(authenticateUser, enrollForCourse);
-router.route("/detail/:courseId").get(authenticateUser, courseDetail);
+router.route("/detail/:courseId").get(courseDetail);
 router
   .route("/edit/:courseId")
   .put(authenticateUser, authenticateInstructor, multerUpload.fields([{ name: "thumbnail", maxCount: 1 }]), editCourse);
