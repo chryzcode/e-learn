@@ -10,7 +10,7 @@ import {
 } from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
-import { isVideo } from "../utils/mediaType";
+import { isVideo, isImage } from "../utils/mediaType";
 import { makeCoursePayment } from "../utils/stripe";
 import { courseRoom } from "../models/chatRoom";
 import { io } from "../utils/socket";
@@ -18,29 +18,39 @@ import { uploadToCloudinary } from "../utils/cloudinaryConfig";
 
 export const createCourse = async (req: any, res: any) => {
   const { userId } = req.user;
-  console.log(req.body);
   req.body.instructor = userId;
 
-  var category = await courseCategory.findOne({ name: req.body.category });
+  const category = await courseCategory.findOne({ name: req.body.category });
   if (!category) {
     throw new NotFoundError("Category does not exist");
   }
-
   req.body.category = category.id;
 
-  if (req.file) {
-    console.log(req.file.mimetype);
-    if (!isVideo(req.file)) {
-      throw new BadRequestError("Video/ Media type not supported");
+  // Handle video upload if provided
+  if (req.files && req.files.video) {
+    if (!isVideo(req.files.video[0])) {
+      throw new BadRequestError("Video/Media type not supported");
     }
-
-    // Handle video upload if provided
     try {
-      const result = await uploadToCloudinary(req.file);
-      req.body.video = result.secure_url; // Use secure_url for HTTPS
+      const result = await uploadToCloudinary(req.files.video[0]);
+      req.body.video = result.secure_url;
     } catch (error) {
       console.error("Error uploading video to Cloudinary:", error);
       return res.status(400).json({ error: "Error uploading video to Cloudinary" });
+    }
+  }
+
+  // Handle thumbnail upload if provided
+  if (req.files && req.files.thumbnail) {
+    if (!isImage(req.files.thumbnail[0].originalname)) {
+      throw new BadRequestError("Image type not supported");
+    }
+    try {
+      const result = await uploadToCloudinary(req.files.thumbnail[0]);
+      req.body.thumbnail = result.secure_url;
+    } catch (error) {
+      console.error("Error uploading thumbnail to Cloudinary:", error);
+      return res.status(400).json({ error: "Error uploading thumbnail to Cloudinary" });
     }
   }
 
@@ -50,11 +60,21 @@ export const createCourse = async (req: any, res: any) => {
   });
   room.users.push(userId);
   await room.save();
+
   res.status(StatusCodes.CREATED).json({ course });
 };
 
 export const allCourses = async (req: any, res: any) => {
-  const courses = await Course.find({}).sort("createdAt");
+  const courses = await Course.find({})
+    .populate({
+      path: "category",
+      select: "name",
+    })
+    .populate({
+      path: "instructor",
+      select: "_id fullName userType avatar", 
+    })
+    .sort("createdAt");
   res.status(StatusCodes.OK).json({ courses });
 };
 
@@ -143,36 +163,39 @@ export const editCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.params;
   req.body.instructor = userId;
-  var category = await courseCategory.findOne({ name: req.body.category });
+
+  const category = await courseCategory.findOne({ name: req.body.category });
   if (!category) {
     throw new NotFoundError("Category does not exist");
   }
   req.body.category = category.id;
-  if (req.body.video) {
-    if (isVideo(req.body.video) == false) {
-      throw new BadRequestError("Video/ Media type not supported");
+
+  // Ensure video field is not modified
+  delete req.body.video;
+
+  // Handle thumbnail upload if provided
+  if (req.files && req.files.thumbnail) {
+    if (!isImage(req.files.thumbnail[0].originalname)) {
+      throw new BadRequestError("Image type not supported");
     }
     try {
-      const result = await cloudinary.v2.uploader.upload(req.body.video, {
-        resource_type: "video",
-        folder: "E-Learn/Course/Video/",
-        use_filename: true,
-        quality: "auto:low", // Set quality to auto:low for automatic compression
-        eager: [{ format: "mp4", video_codec: "h264" }], // Convert to MP4 with H.264 codec for better compression
-      });
-      req.body.video = result.url;
+      const result = await uploadToCloudinary(req.files.thumbnail[0]);
+      req.body.thumbnail = result.secure_url;
     } catch (error) {
-      console.error(error);
-      throw new BadRequestError("error uploading video on cloudinary");
+      console.error("Error uploading thumbnail to Cloudinary:", error);
+      return res.status(400).json({ error: "Error uploading thumbnail to Cloudinary" });
     }
   }
+
   const course = await Course.findOneAndUpdate({ _id: courseId, instructor: userId }, req.body, {
     runValidators: true,
     new: true,
   });
+
   if (!course) {
-    throw new NotFoundError(`Course with ${courseId} does not exist`);
+    throw new NotFoundError(`Course does not exist`);
   }
+
   res.status(StatusCodes.OK).json({ course });
 };
 

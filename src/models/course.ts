@@ -10,6 +10,12 @@ const courseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+
+    thumbnail: {
+      type: String,
+      required: [true, "thumbnail field is required"],
+    },
+
     video: {
       type: String,
       required: [true, "video field is required"],
