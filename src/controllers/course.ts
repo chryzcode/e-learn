@@ -162,7 +162,7 @@ export const courseDetail = async (req: any, res: any) => {
     throw new NotFoundError(`Course does not exist`);
   }
 
-  if (course.free == true) {
+  if (course.free === true) {
     return res.status(StatusCodes.OK).json({ access: course });
   }
 
@@ -172,10 +172,10 @@ export const courseDetail = async (req: any, res: any) => {
     if (student) {
       return res.status(StatusCodes.OK).json({ access: course });
     }
-  }
+  } // If user is not authenticated or not a student of the course // Exclude the video field from the response
 
-  // If user is not authenticated or not a student of the course
-  res.status(StatusCodes.OK).json({ noAccess: course });
+  const { video, ...courseWithoutVideo } = course.toObject();
+  res.status(StatusCodes.OK).json({ noAccess: courseWithoutVideo });
 };
 
 export const editCourse = async (req: any, res: any) => {
