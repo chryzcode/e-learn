@@ -162,6 +162,10 @@ export const courseDetail = async (req: any, res: any) => {
     throw new NotFoundError(`Course does not exist`);
   }
 
+  if (course.free == true) {
+    return res.status(StatusCodes.OK).json({ access: course });
+  }
+
   if (userId) {
     const student = await courseStudent.findOne({ student: userId, course: courseId });
 
