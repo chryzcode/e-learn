@@ -72,7 +72,7 @@ export const allCourses = async (req: any, res: any) => {
     })
     .populate({
       path: "instructor",
-      select: "_id fullName userType avatar", 
+      select: "_id fullName userType avatar",
     })
     .sort("createdAt");
   res.status(StatusCodes.OK).json({ courses });
@@ -145,18 +145,33 @@ export const enrollForCourse = async (req: any, res: any) => {
 };
 
 export const courseDetail = async (req: any, res: any) => {
-  const { userId } = req.user;
   const { courseId } = req.params;
-  const course = await Course.findOne({ _id: courseId });
+  const userId = req.user ? req.user.userId : null; // Check if the user is authenticated
+
+  const course = await Course.findOne({ _id: courseId })
+    .populate({
+      path: "category",
+      select: "name",
+    })
+    .populate({
+      path: "instructor",
+      select: "_id fullName userType avatar",
+    });
+
   if (!course) {
-    throw new NotFoundError(`Course with ${courseId} does not exist`);
+    throw new NotFoundError(`Course does not exist`);
   }
-  const student = await courseStudent.findOne({ student: userId, course: courseId });
-  if (student) {
-    res.status(StatusCodes.OK).json({ access: course });
-  } else {
-    res.status(StatusCodes.OK).json({ noAcesss: course });
+
+  if (userId) {
+    const student = await courseStudent.findOne({ student: userId, course: courseId });
+
+    if (student) {
+      return res.status(StatusCodes.OK).json({ access: course });
+    }
   }
+
+  // If user is not authenticated or not a student of the course
+  res.status(StatusCodes.OK).json({ noAccess: course });
 };
 
 export const editCourse = async (req: any, res: any) => {
