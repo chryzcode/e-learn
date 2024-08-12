@@ -20,6 +20,10 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: [true, "video field is required"],
     },
+
+    description: {
+      type: String,
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "courseCategory",
