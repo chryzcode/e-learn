@@ -148,6 +148,7 @@ export const courseDetail = async (req: any, res: any) => {
   const { courseId } = req.params;
   const userId = req.user ? req.user.userId : null; // Check if the user is authenticated
 
+  // Fetch the course with populated fields
   const course = await Course.findOne({ _id: courseId })
     .populate({
       path: "category",
@@ -162,21 +163,41 @@ export const courseDetail = async (req: any, res: any) => {
     throw new NotFoundError(`Course does not exist`);
   }
 
+  // Fetch likes
+  const likes = await courseLike.find({ course: courseId }).countDocuments();
+
+  // Fetch comments
+  const comments = await courseComment
+    .find({ course: courseId })
+    .populate({
+      path: "student",
+      select: "fullName avatar",
+    })
+    .exec();
+
+  // Fetch ratings
+  const ratings = await courseRating.find({ course: courseId });
+  const averageRating =
+    ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating.numberOfRating, 0) / ratings.length : 0;
+
   if (course.free === true) {
-    return res.status(StatusCodes.OK).json({ access: course });
+    return res.status(StatusCodes.OK).json({ access: { ...course.toObject(), likes, comments, averageRating } });
   }
 
   if (userId) {
     const student = await courseStudent.findOne({ student: userId, course: courseId });
 
     if (student) {
-      return res.status(StatusCodes.OK).json({ access: course });
+      return res.status(StatusCodes.OK).json({ access: { ...course.toObject(), likes, comments, averageRating } });
     }
-  } // If user is not authenticated or not a student of the course // Exclude the video field from the response
+  }
 
+  // If user is not authenticated or not a student of the course
   const { video, ...courseWithoutVideo } = course.toObject();
-  res.status(StatusCodes.OK).json({ noAccess: courseWithoutVideo });
+  res.status(StatusCodes.OK).json({ noAccess: { ...courseWithoutVideo, likes, comments, averageRating } });
 };
+
+
 
 export const editCourse = async (req: any, res: any) => {
   const { userId } = req.user;
