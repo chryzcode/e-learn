@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema(
       enum: ["Instructor", "Student"],
       required: [true, "userType is required"],
     },
+
+    bio: {
+      type: String,
+    },
+
     email: {
       required: true,
       type: String,
@@ -51,7 +56,7 @@ const JWT_SECRET = process.env.JWT_SECRET as any;
 
 userSchema.methods.createJWT = function () {
   const token = jwt.sign({ userId: this._id, fullName: this.fullName }, JWT_SECRET, {
-    expiresIn: "27h" ,
+    expiresIn: "27h",
   });
   this.token = token;
   return token;
@@ -63,4 +68,3 @@ userSchema.methods.comparePassword = async function (candidatePassword: any) {
 };
 
 export const User = mongoose.model("User", userSchema);
-
