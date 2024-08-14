@@ -146,7 +146,7 @@ export const enrollForCourse = async (req: any, res: any) => {
 
 export const courseDetail = async (req: any, res: any) => {
   const { courseId } = req.params;
-  const userId = req.user ? req.user.userId : null; // Check if the user is authenticated
+  const userId = req.user?._id;
 
   // Fetch the course with populated fields
   const course = await Course.findOne({ _id: courseId })
@@ -180,23 +180,20 @@ export const courseDetail = async (req: any, res: any) => {
   const averageRating =
     ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating.numberOfRating, 0) / ratings.length : 0;
 
-  if (course.free === true) {
-    return res.status(StatusCodes.OK).json({ access: { ...course.toObject(), likes, comments, averageRating } });
-  }
+  // Check if the user is a student of the course
+  const isStudent = userId ? await courseStudent.exists({ course: courseId, student: userId }) : false;
 
-  if (userId) {
-    const student = await courseStudent.findOne({ student: userId, course: courseId });
+  // Construct the course data response
+  const courseData = {
+    ...course.toObject(),
+    videoUrl: isStudent ? course.video : null, // Conditionally include video URL
+    likes,
+    comments,
+    averageRating,
+  };
 
-    if (student) {
-      return res.status(StatusCodes.OK).json({ access: { ...course.toObject(), likes, comments, averageRating } });
-    }
-  }
-
-  // If user is not authenticated or not a student of the course
-  const { video, ...courseWithoutVideo } = course.toObject();
-  res.status(StatusCodes.OK).json({ noAccess: { ...courseWithoutVideo, likes, comments, averageRating } });
+  res.status(StatusCodes.OK).json({ course: courseData });
 };
-
 
 
 export const editCourse = async (req: any, res: any) => {
@@ -257,6 +254,17 @@ export const deleteCourse = async (req: any, res: any) => {
   }
 };
 
+export const courseStudents = async (req: any, res: any) => {
+  const { courseId } = req.params;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course does not exist`);
+  }
+  const students = await courseStudent.find({ course: course._id });
+  res.status(StatusCodes.OK).json({ students });
+};
+
+
 export const likeCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
@@ -306,7 +314,7 @@ export const courseComments = async (req: any, res: any) => {
   const { courseId } = req.params;
   const course = await Course.findOne({ _id: courseId });
   if (!course) {
-    throw new NotFoundError(`Course with ${courseId} does not exist`);
+    throw new NotFoundError(`Course does not exist`);
   }
   const comments = await courseComment.find({ course: courseId });
   io.to(courseId).emit("courseComments", { courseId, comments });
