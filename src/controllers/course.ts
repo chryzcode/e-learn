@@ -197,8 +197,6 @@ export const courseDetail = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ noAccess: { ...courseWithoutVideo, likes, comments, averageRating } });
 };
 
-
-
 export const editCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.params;
@@ -257,6 +255,16 @@ export const deleteCourse = async (req: any, res: any) => {
   }
 };
 
+export const courseStudents = async (req: any, res: any) => {
+  const { courseId } = req.params;
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    throw new NotFoundError(`Course does not exist`);
+  }
+  const students = await courseStudent.find({ course: course._id });
+  res.status(StatusCodes.OK).json({ students });
+};
+
 export const likeCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
@@ -306,7 +314,7 @@ export const courseComments = async (req: any, res: any) => {
   const { courseId } = req.params;
   const course = await Course.findOne({ _id: courseId });
   if (!course) {
-    throw new NotFoundError(`Course with ${courseId} does not exist`);
+    throw new NotFoundError(`Course does not exist`);
   }
   const comments = await courseComment.find({ course: courseId });
   io.to(courseId).emit("courseComments", { courseId, comments });
