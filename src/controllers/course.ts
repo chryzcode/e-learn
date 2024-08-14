@@ -186,7 +186,7 @@ export const courseDetail = async (req: any, res: any) => {
   // Construct the course data response
   const courseData = {
     ...course.toObject(),
-    videoUrl: isStudent ? course.video : null, // Conditionally include video URL
+    video: isStudent ? course.video : null, // Conditionally include video URL
     likes,
     comments,
     averageRating,
