@@ -254,7 +254,7 @@ export const deleteCourse = async (req: any, res: any) => {
   }
 };
 
-export const courseStudents = async (req: Request, res: Response) => {
+export const courseStudents = async (req: any, res: any) => {
   const { courseId } = req.params;
   const course = await Course.findOne({ _id: courseId });
   if (!course) {
