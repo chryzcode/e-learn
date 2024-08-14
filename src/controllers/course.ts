@@ -182,11 +182,11 @@ export const courseDetail = async (req: any, res: any) => {
 
   // Check if the user is a student of the course
   const isStudent = userId ? await courseStudent.exists({ course: courseId, student: userId }) : false;
-
+console.log(isStudent)
   // Construct the course data response
   const courseData = {
     ...course.toObject(),
-    videoUrl: isStudent ? course.video : null, // Conditionally include video URL
+    video: isStudent ? course.video : null, // Conditionally include video URL
     likes,
     comments,
     averageRating,
