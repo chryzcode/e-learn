@@ -15,6 +15,11 @@ import { makeCoursePayment } from "../utils/stripe";
 import { courseRoom } from "../models/chatRoom";
 import { io } from "../utils/socket";
 import { uploadToCloudinary } from "../utils/cloudinaryConfig";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user";
+
+const JWT_SECRET = process.env.JWT_SECRET as any;
+
 
 export const createCourse = async (req: any, res: any) => {
   const { userId } = req.user;
@@ -146,7 +151,24 @@ export const enrollForCourse = async (req: any, res: any) => {
 
 export const courseDetail = async (req: any, res: any) => {
   const { courseId } = req.params;
-  const userId = req.user?._id;
+ const authHeader = req.headers.authorization;
+ let userId: string | null = null;
+
+ if (authHeader && authHeader.startsWith("Bearer ")) {
+   const token = authHeader.split(" ")[1];
+   try {
+     const payload: any = jwt.verify(token, process.env.JWT_SECRET || JWT_SECRET);
+     const user = await User.findOne({ _id: payload.userId, verified: true });
+
+     if (user) {
+       userId = payload.userId; // Attach userId if authenticated
+     }
+   } catch (error) {
+     return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Authentication invalid" });
+   }
+ }
+
+  console.log(userId)
 
   // Fetch the course with populated fields
   const course = await Course.findOne({ _id: courseId })
@@ -180,9 +202,15 @@ export const courseDetail = async (req: any, res: any) => {
   const averageRating =
     ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating.numberOfRating, 0) / ratings.length : 0;
 
-  // Check if the user is a student of the course
-  const isStudent = userId ? await courseStudent.exists({ course: courseId, student: userId }) : false;
-
+  let isStudent = false
+  if (userId) {
+    const aStudent = await courseStudent.findOne({ student: userId, course: courseId });
+     console.log(aStudent);
+    if (aStudent) {
+      isStudent = true;
+    }
+    console.log(isStudent);
+  }
   // Construct the course data response
   const courseData = {
     ...course.toObject(),
