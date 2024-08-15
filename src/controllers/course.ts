@@ -168,7 +168,6 @@ export const courseDetail = async (req: any, res: any) => {
    }
  }
 
-  console.log(userId)
 
   // Fetch the course with populated fields
   const course = await Course.findOne({ _id: courseId })
