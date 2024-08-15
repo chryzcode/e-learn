@@ -31,8 +31,8 @@ const courseSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      enum: ["ngn"],
-      default: "ngn",
+      enum: ["usd"],
+      default: "usd",
     },
     price: {
       type: Number,
