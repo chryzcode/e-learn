@@ -20,7 +20,6 @@ import { User } from "../models/user";
 
 const JWT_SECRET = process.env.JWT_SECRET as any;
 
-
 export const createCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   req.body.instructor = userId;
@@ -151,23 +150,22 @@ export const enrollForCourse = async (req: any, res: any) => {
 
 export const courseDetail = async (req: any, res: any) => {
   const { courseId } = req.params;
- const authHeader = req.headers.authorization;
- let userId: string | null = null;
+  const authHeader = req.headers.authorization;
+  let userId: string | null = null;
 
- if (authHeader && authHeader.startsWith("Bearer ")) {
-   const token = authHeader.split(" ")[1];
-   try {
-     const payload: any = jwt.verify(token, process.env.JWT_SECRET || JWT_SECRET);
-     const user = await User.findOne({ _id: payload.userId, verified: true });
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    try {
+      const payload: any = jwt.verify(token, process.env.JWT_SECRET || JWT_SECRET);
+      const user = await User.findOne({ _id: payload.userId, verified: true });
 
-     if (user) {
-       userId = payload.userId; // Attach userId if authenticated
-     }
-   } catch (error) {
-     return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Authentication invalid" });
-   }
- }
-
+      if (user) {
+        userId = payload.userId; // Attach userId if authenticated
+      }
+    } catch (error) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Authentication invalid" });
+    }
+  }
 
   // Fetch the course with populated fields
   const course = await Course.findOne({ _id: courseId })
@@ -201,10 +199,10 @@ export const courseDetail = async (req: any, res: any) => {
   const averageRating =
     ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating.numberOfRating, 0) / ratings.length : 0;
 
-  let isStudent = false
+  let isStudent = false;
   if (userId) {
     const aStudent = await courseStudent.findOne({ student: userId, course: courseId });
-     console.log(aStudent);
+    console.log(aStudent);
     if (aStudent) {
       isStudent = true;
     }
@@ -221,7 +219,6 @@ export const courseDetail = async (req: any, res: any) => {
 
   res.status(StatusCodes.OK).json({ course: courseData });
 };
-
 
 export const editCourse = async (req: any, res: any) => {
   const { userId } = req.user;
@@ -291,7 +288,6 @@ export const courseStudents = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ students });
 };
 
-
 export const likeCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
@@ -332,11 +328,24 @@ export const courseRatings = async (req: any, res: any) => {
 
 export const createComment = async (req: any, res: any) => {
   const { userId } = req.user;
-  const { courseId } = req.course;
-  const comment = await courseComment.create({ student: userId, course: courseId, comment: req.body.comment });
-  res.status(StatusCodes.CREATED).json({ comment });
-};
+  const { courseId } = req.params; 
 
+
+    // Create the comment
+    const newComment = await courseComment.create({
+      student: userId,
+      course: courseId,
+      comment: req.body.comment,
+    });
+
+    const populatedComment = await courseComment
+      .findById(newComment._id)
+      .populate("student", "fullName avatar")
+      .populate("course", "title");
+
+    res.status(StatusCodes.CREATED).json({ comment: populatedComment });
+ 
+};
 export const courseComments = async (req: any, res: any) => {
   const { courseId } = req.params;
   const course = await Course.findOne({ _id: courseId });
@@ -350,19 +359,28 @@ export const courseComments = async (req: any, res: any) => {
 
 export const editComment = async (req: any, res: any) => {
   const { userId } = req.user;
-  const { courseId } = req.course;
+  const { courseId } = req.params;
   const { commentId } = req.params;
-  const comment = await courseComment.findOneAndUpdate(
-    { _id: commentId, course: courseId, student: userId },
-    { comment: req.body.comment },
-    { new: true, runValidators: true }
-  );
-  if (!comment) {
-    throw new NotFoundError(`comment not found`);
-  }
-  res.status(StatusCodes.OK).json({ comment });
-};
+    
+    const updatedComment = await courseComment.findOneAndUpdate(
+      { _id: commentId, course: courseId, student: userId },
+      { comment: req.body.comment },
+      { new: true, runValidators: true }
+    );
 
+    // Check if the comment was found and updated
+    if (!updatedComment) {
+      throw new NotFoundError("Comment not found");
+    }
+
+    // Populate the necessary fields
+    const populatedComment = await courseComment
+      .findById(updatedComment._id)
+      .populate("student", "fullName avatar")
+      .populate("course", "title");
+
+    res.status(StatusCodes.OK).json({ comment: populatedComment });
+  } 
 export const deleteComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
