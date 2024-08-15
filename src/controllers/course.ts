@@ -328,7 +328,7 @@ export const courseRatings = async (req: any, res: any) => {
 
 export const createComment = async (req: any, res: any) => {
   const { userId } = req.user;
-  const { courseId } = req.params; // Assuming courseId is a URL parameter
+  const { courseId } = req.params; 
 
 
     // Create the comment
@@ -361,7 +361,7 @@ export const editComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.params;
   const { commentId } = req.params;
-    // Update the comment
+    
     const updatedComment = await courseComment.findOneAndUpdate(
       { _id: commentId, course: courseId, student: userId },
       { comment: req.body.comment },
