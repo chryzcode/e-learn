@@ -6,7 +6,7 @@ export default async (req: any, res: any, next: any) => {
   const { courseId } = req.params;
   const course = await Course.findOne({ _id: courseId });
   if (!course) {
-    throw new NotFoundError(`Course with ${courseId} does not exist`);
+    throw new NotFoundError(`Course with does not exist`);
   }
   const student: any = await courseStudent.findOne({ student: userId, course: courseId });
   if (student) {

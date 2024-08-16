@@ -21,6 +21,7 @@ import {
   addCourseWishlist,
   getUserWishlist,
   courseStudents,
+  studentCourses,
 } from "../controllers/course";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -42,7 +43,8 @@ router
   )
   .get(allCourses);
 router.route("/instructor/:instructorId").get(getAnInstructorCourses);
-router.route("/my-courses").get(authenticateUser, authenticateInstructor, instructorCourses);
+router.route("/instructor/my-courses").get(authenticateUser, authenticateInstructor, instructorCourses);
+router.route("/student/my-courses").get(authenticateUser, studentCourses);
 router.route("/categories").get(courseCategories);
 router.route("/categories/:categoryId").get(filterCourseByCategory);
 router.route("/free").get(freeCourses);
