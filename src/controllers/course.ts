@@ -84,13 +84,17 @@ export const allCourses = async (req: any, res: any) => {
 
 export const getAnInstructorCourses = async (req: any, res: any) => {
   const { instructorId } = req.params;
-  const courses = await Course.find({ instructor: instructorId });
+  const courses = await Course.find({ instructor: instructorId })
+    .populate("instructor", "fullName")
+    .populate("category", "name");
   res.status(StatusCodes.OK).json({ courses });
 };
 
 export const instructorCourses = async (req: any, res: any) => {
   const { userId } = req.user;
-  const courses = await Course.find({ instructor: userId });
+  const courses = await Course.find({ instructor: userId })
+    .populate("instructor", "fullName")
+    .populate("category", "name");
   res.status(StatusCodes.OK).json({ courses });
 };
 
@@ -328,23 +332,21 @@ export const courseRatings = async (req: any, res: any) => {
 
 export const createComment = async (req: any, res: any) => {
   const { userId } = req.user;
-  const { courseId } = req.params; 
+  const { courseId } = req.params;
 
+  // Create the comment
+  const newComment = await courseComment.create({
+    student: userId,
+    course: courseId,
+    comment: req.body.comment,
+  });
 
-    // Create the comment
-    const newComment = await courseComment.create({
-      student: userId,
-      course: courseId,
-      comment: req.body.comment,
-    });
+  const populatedComment = await courseComment
+    .findById(newComment._id)
+    .populate("student", "fullName avatar")
+    .populate("course", "title");
 
-    const populatedComment = await courseComment
-      .findById(newComment._id)
-      .populate("student", "fullName avatar")
-      .populate("course", "title");
-
-    res.status(StatusCodes.CREATED).json({ comment: populatedComment });
- 
+  res.status(StatusCodes.CREATED).json({ comment: populatedComment });
 };
 export const courseComments = async (req: any, res: any) => {
   const { courseId } = req.params;
@@ -361,26 +363,26 @@ export const editComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.params;
   const { commentId } = req.params;
-    
-    const updatedComment = await courseComment.findOneAndUpdate(
-      { _id: commentId, course: courseId, student: userId },
-      { comment: req.body.comment },
-      { new: true, runValidators: true }
-    );
 
-    // Check if the comment was found and updated
-    if (!updatedComment) {
-      throw new NotFoundError("Comment not found");
-    }
+  const updatedComment = await courseComment.findOneAndUpdate(
+    { _id: commentId, course: courseId, student: userId },
+    { comment: req.body.comment },
+    { new: true, runValidators: true }
+  );
 
-    // Populate the necessary fields
-    const populatedComment = await courseComment
-      .findById(updatedComment._id)
-      .populate("student", "fullName avatar")
-      .populate("course", "title");
+  // Check if the comment was found and updated
+  if (!updatedComment) {
+    throw new NotFoundError("Comment not found");
+  }
 
-    res.status(StatusCodes.OK).json({ comment: populatedComment });
-  } 
+  // Populate the necessary fields
+  const populatedComment = await courseComment
+    .findById(updatedComment._id)
+    .populate("student", "fullName avatar")
+    .populate("course", "title");
+
+  res.status(StatusCodes.OK).json({ comment: populatedComment });
+};
 export const deleteComment = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.course;
@@ -418,4 +420,21 @@ export const getUserWishlist = async (req: any, res: any) => {
   }
   const wishlist = userWishlist.courses;
   res.status(StatusCodes.OK).json({ wishlist });
+};
+
+export const studentCourses = async (req: any, res: any) => {
+  const { userId } = req.user;
+
+  const courses = await courseStudent.find({ student: userId }).populate({
+    path: "course",
+    model: "Course",
+    populate: [
+      { path: "instructor", model: "User", select: "fullName" },
+      { path: "category", model: "courseCategory", select: "name" },
+    ],
+  });
+
+  res.status(200).json({
+    courses: courses.map(cs => cs.course),
+  });
 };
