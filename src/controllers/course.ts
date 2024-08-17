@@ -109,12 +109,14 @@ export const filterCourseByCategory = async (req: any, res: any) => {
   if (!categoryObj) {
     throw new NotFoundError(`Category with ${categoryId} does not exist`);
   }
-  const courses = await Course.find({ category: categoryId });
+  const courses = await Course.find({ category: categoryId })
+    .populate("instructor", "fullName")
+    .populate("category", "name");
   res.status(StatusCodes.OK).json({ courses });
 };
 
 export const freeCourses = async (req: any, res: any) => {
-  const courses = await Course.find({ free: true });
+  const courses = await Course.find({ free: true }).populate("instructor", "fullName").populate("category", "name");
   res.status(StatusCodes.OK).json({ courses });
 };
 
@@ -206,7 +208,6 @@ export const courseDetail = async (req: any, res: any) => {
   let isStudent = false;
   if (userId) {
     const aStudent = await courseStudent.findOne({ student: userId, course: courseId });
-    console.log(aStudent);
     if (aStudent) {
       isStudent = true;
     }
