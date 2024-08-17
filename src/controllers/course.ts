@@ -414,11 +414,19 @@ export const addCourseWishlist = async (req: any, res: any) => {
 
 export const getUserWishlist = async (req: any, res: any) => {
   const { userId } = req.user;
-  const userWishlist = await courseWishlist.findOne({ user: userId }).populate("courses");
+  const userWishlist = await courseWishlist.findOne({ user: userId }).populate({
+    path: "courses",
+    populate: [
+      { path: "instructor", select: "fullName" },
+      { path: "category", select: "name" },
+    ],
+  });
+
   if (!userWishlist) {
     res.status(StatusCodes.OK).json({ wishlist: [] });
     return;
   }
+
   const wishlist = userWishlist.courses;
   res.status(StatusCodes.OK).json({ wishlist });
 };
