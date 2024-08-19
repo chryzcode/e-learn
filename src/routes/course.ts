@@ -12,8 +12,6 @@ import {
   editCourse,
   deleteCourse,
   likeCourse,
-  rateCourse,
-  courseRatings,
   createComment,
   courseComments,
   editComment,
@@ -25,6 +23,7 @@ import {
   removeCourseFromWishlist,
   unlikeCourse,
   getCourseLikes,
+  searchCourses,
 } from "../controllers/course";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -63,7 +62,6 @@ router
   .post(authenticateUser, authenticateStudent, likeCourse)
   .delete(authenticateUser, authenticateStudent, unlikeCourse)
   .get(getCourseLikes);
-router.route("/rate/:courseId").post(authenticateUser, authenticateStudent, rateCourse).get(courseRatings);
 router.route("/comment/:courseId").post(authenticateUser, authenticateStudent, createComment).get(courseComments);
 router
   .route("/:courseId/comment/:commentId")
@@ -74,4 +72,6 @@ router
   .post(authenticateUser, addCourseWishlist)
   .delete(authenticateUser, removeCourseFromWishlist);
 router.route("/wishlists").get(authenticateUser, getUserWishlist);
+router.get("/search", searchCourses);
+
 export default router;
