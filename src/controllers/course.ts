@@ -1,13 +1,5 @@
 import cloudinary from "cloudinary";
-import {
-  Course,
-  courseCategory,
-  courseStudent,
-  courseLike,
-  courseRating,
-  courseComment,
-  courseWishlist,
-} from "../models/course";
+import { Course, courseCategory, courseStudent, courseLike, courseComment, courseWishlist } from "../models/course";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { isVideo, isImage } from "../utils/mediaType";
@@ -200,11 +192,6 @@ export const courseDetail = async (req: any, res: any) => {
     })
     .exec();
 
-  // Fetch ratings
-  const ratings = await courseRating.find({ course: courseId });
-  const averageRating =
-    ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating.numberOfRating, 0) / ratings.length : 0;
-
   let isStudent = false;
   if (userId) {
     const aStudent = await courseStudent.findOne({ student: userId, course: courseId });
@@ -219,7 +206,6 @@ export const courseDetail = async (req: any, res: any) => {
     video: isStudent ? course.video : null, // Conditionally include video URL
     likes,
     comments,
-    averageRating,
   };
 
   res.status(StatusCodes.OK).json({ course: courseData });
@@ -305,30 +291,6 @@ export const likeCourse = async (req: any, res: any) => {
   const courseLikes = (await courseLike.find({ course: courseId })).length;
   io.to(courseId).emit("courseLiked", { courseId, courseLikes });
   res.status(StatusCodes.OK).json({ courseLikes });
-};
-
-export const rateCourse = async (req: any, res: any) => {
-  const { userId } = req.user;
-  const { courseId } = req.course;
-  req.body.student = userId;
-  req.body.course = courseId;
-  let rating = await courseRating.findOne({ student: userId, course: courseId });
-  if (!rating) {
-    rating = await courseRating.create({ ...req.body });
-  } else {
-    rating = await courseRating.findOneAndUpdate({ _id: rating.id }, req.body, { new: true, runValidators: true });
-  }
-  res.status(StatusCodes.OK).json({ rating });
-};
-
-export const courseRatings = async (req: any, res: any) => {
-  const { courseId } = req.params;
-  const course = await Course.findOne({ _id: courseId });
-  if (!course) {
-    throw new NotFoundError(`Course with ${courseId} does not exist`);
-  }
-  const ratings = await courseRating.find({ course: courseId });
-  res.status(StatusCodes.OK).json({ ratings });
 };
 
 export const createComment = async (req: any, res: any) => {
@@ -448,7 +410,6 @@ export const studentCourses = async (req: any, res: any) => {
   });
 };
 
-
 export const removeCourseFromWishlist = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.params;
@@ -469,7 +430,6 @@ export const removeCourseFromWishlist = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ message: "Course removed from wishlist", userWishlist });
 };
 
-
 export const unlikeCourse = async (req: any, res: any) => {
   const { userId } = req.user;
   const { courseId } = req.params;
@@ -487,22 +447,56 @@ export const unlikeCourse = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ message: "Course unliked", courseLikes });
 };
 
-
 export const getCourseLikes = async (req: any, res: any) => {
+  const { courseId } = req.params;
 
-    const { courseId } = req.params;
+  // Find likes for the course and populate student details
+  const likes = await courseLike
+    .find({ course: courseId })
+    .populate({
+      path: "student",
+      select: "name  _id", // Specify fields to return from the Student model
+    })
+    .exec();
 
-    // Find likes for the course and populate student details
-    const likes = await courseLike.find({ course: courseId })
-      .populate({
-        path: "student",
-        select: "name  _id", // Specify fields to return from the Student model
-      })
-      .exec();
+  if (!likes) {
+    return res.status(404).json({ error: "No likes found for this course" });
+  }
 
-    if (!likes) {
-      return res.status(404).json({ error: "No likes found for this course" });
+  res.json({ likes });
+};
+
+export const searchCourses = async (req: any, res: any) => {
+  const { query } = req.query as { query?: string };
+  const searchCriteria: any = [];
+
+  if (query) {
+    const regex = new RegExp(query, "i"); // 'i' makes it case-insensitive
+
+    // Add title and description to the search criteria
+    searchCriteria.push({ title: regex });
+    searchCriteria.push({ description: regex });
+
+    // For searching in categories and instructors, we need to populate and filter
+    const categories = await courseCategory.find({ name: regex });
+    const instructors = await User.find({ fullName: regex });
+
+    if (categories.length > 0) {
+      searchCriteria.push({ category: { $in: categories.map(cat => cat._id) } });
     }
 
-    res.json({ likes });
+    if (instructors.length > 0) {
+      searchCriteria.push({ instructor: { $in: instructors.map(inst => inst._id) } });
+    }
+  }
+
+  // Combine all search criteria with $or
+  const courses = await Course.find({ $or: searchCriteria })
+    .populate("instructor", "fullName")
+    .populate("category", "name");
+
+  res.status(200).json({
+    success: true,
+    data: courses,
+  });
 };
