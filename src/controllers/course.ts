@@ -447,3 +447,62 @@ export const studentCourses = async (req: any, res: any) => {
     courses: courses.map(cs => cs.course),
   });
 };
+
+
+export const removeCourseFromWishlist = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.params;
+
+  const userWishlist = await courseWishlist.findOne({ user: userId });
+  if (!userWishlist) {
+    throw new NotFoundError("Wishlist not found");
+  }
+
+  const courseIndex = userWishlist.courses.indexOf(courseId);
+  if (courseIndex === -1) {
+    throw new BadRequestError("Course not found in wishlist");
+  }
+
+  userWishlist.courses.splice(courseIndex, 1); // Remove course from wishlist
+  await userWishlist.save();
+
+  res.status(StatusCodes.OK).json({ message: "Course removed from wishlist", userWishlist });
+};
+
+
+export const unlikeCourse = async (req: any, res: any) => {
+  const { userId } = req.user;
+  const { courseId } = req.params;
+
+  const likeCourse = await courseLike.findOne({ student: userId, course: courseId });
+  if (!likeCourse) {
+    throw new BadRequestError("Course is not liked");
+  }
+
+  await courseLike.findOneAndDelete({ student: userId, course: courseId });
+
+  const courseLikes = await courseLike.countDocuments({ course: courseId });
+  io.to(courseId).emit("courseLiked", { courseId, courseLikes });
+
+  res.status(StatusCodes.OK).json({ message: "Course unliked", courseLikes });
+};
+
+
+export const getCourseLikes = async (req: any, res: any) => {
+
+    const { courseId } = req.params;
+
+    // Find likes for the course and populate student details
+    const likes = await courseLike.find({ course: courseId })
+      .populate({
+        path: "student",
+        select: "name  _id", // Specify fields to return from the Student model
+      })
+      .exec();
+
+    if (!likes) {
+      return res.status(404).json({ error: "No likes found for this course" });
+    }
+
+    res.json({ likes });
+};

@@ -68,7 +68,7 @@ const courseStudentSchema = new mongoose.Schema({
 const courseLikeSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Student",
+    ref: "User",
   },
   course: {
     type: mongoose.Schema.Types.ObjectId,
@@ -80,7 +80,7 @@ const courseRatingSchema = new mongoose.Schema(
   {
     student: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
+      ref: "User",
     },
 
     numberOfRating: {
