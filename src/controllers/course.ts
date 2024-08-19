@@ -85,7 +85,7 @@ export const allCourses = async (req: any, res: any) => {
 export const getAnInstructorCourses = async (req: any, res: any) => {
   const { instructorId } = req.params;
   const courses = await Course.find({ instructor: instructorId })
-    .populate("instructor", "fullName")
+    .populate("instructor", "fullName userType bio avatar")
     .populate("category", "name");
   res.status(StatusCodes.OK).json({ courses });
 };
