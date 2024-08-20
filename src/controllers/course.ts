@@ -468,7 +468,7 @@ export const getCourseLikes = async (req: any, res: any) => {
 
 export const searchCourses = async (req: any, res: any) => {
   const { query } = req.query as { query?: string };
-  const searchCriteria: any = [];
+  const searchCriteria: any[] = [];
 
   if (query) {
     const regex = new RegExp(query, "i"); // 'i' makes it case-insensitive
@@ -477,7 +477,7 @@ export const searchCourses = async (req: any, res: any) => {
     searchCriteria.push({ title: regex });
     searchCriteria.push({ description: regex });
 
-    // For searching in categories and instructors, we need to populate and filter
+    // For searching in categories and instructors, populate and filter
     const categories = await courseCategory.find({ name: regex });
     const instructors = await User.find({ fullName: regex });
 
@@ -491,7 +491,7 @@ export const searchCourses = async (req: any, res: any) => {
   }
 
   // Combine all search criteria with $or
-  const courses = await Course.find({ $or: searchCriteria })
+  const courses = await Course.find(searchCriteria.length > 0 ? { $or: searchCriteria } : {})
     .populate("instructor", "fullName")
     .populate("category", "name");
 
