@@ -3,7 +3,7 @@ import { paymentSuccessful, paymentCancelled } from "../controllers/payment";
 
 const router = express.Router();
 
-router.route("/:paymentId/success").get(paymentSuccessful);
-router.route("/:paymentId/cancel").get(paymentCancelled);
+router.route("/:paymentId/course/:courseId/success").get(paymentSuccessful);
+router.route("/:paymentId/course/:courseId/cancel").get(paymentCancelled);
 
 export default router;

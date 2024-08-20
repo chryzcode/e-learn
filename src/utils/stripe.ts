@@ -19,8 +19,8 @@ export const makeCoursePayment = async (userId: any, courseId: any) => {
     course: courseId,
     amount: course.price,
   });
-  const successUrl = `${DOMAIN}payment/${payment.id}/success`;
-  const cancelUrl = `${DOMAIN}payment/${payment.id}/cancel`;
+  const successUrl = `${DOMAIN}payment/${payment._id}/course/${courseId}/success`;
+  const cancelUrl = `${DOMAIN}payment/${payment._id}/course/${courseId}/cancel`;
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"], // Payment method types accepted (e.g., card)
