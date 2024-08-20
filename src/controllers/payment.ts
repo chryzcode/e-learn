@@ -7,17 +7,17 @@ import { User } from "../models/user";
 import { courseRoom } from "../models/chatRoom";
 
 export const paymentSuccessful = async (req: any, res: any) => {
-  const { paymentId } = req.params;
+  const { paymentId, courseId } = req.params;
   const payment = await Payment.findOneAndUpdate(
-    { _id: paymentId },
+    { _id: paymentId, course: courseId },
     { paid: true },
     { new: true, runValidators: true }
   );
   if (!payment) {
-    throw new NotFoundError(`Payment with id ${paymentId} does not exists`);
+    throw new NotFoundError(`Payment does not exists`);
   }
   if (payment.paid == true) {
-    throw new BadRequestError(`payment has been paid already`);
+    throw new BadRequestError(`Payment has been paid already`);
   }
   const studentCourseObj = await courseStudent.create({
     student: payment.student,
