@@ -9,7 +9,16 @@ import { io } from "../utils/socket";
 
 export const userRooms = async (req: any, res: any) => {
   const { userId } = req.user;
-  const rooms = await courseRoom.find({ users: userId });
+  const rooms = await courseRoom
+    .find({ users: userId })
+    .populate({
+      path: "course",
+      select: "title thumbnail instructor",
+    })
+    .populate({
+      path: "users",
+      select: "fullName userType avatar",
+    });
   res.status(StatusCodes.OK).json({ rooms });
 };
 
