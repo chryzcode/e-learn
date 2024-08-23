@@ -2,24 +2,22 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import express from "express";
 import "express-async-errors";
-
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
-
-//error handler
 import errorHandlerMiddleware from "./middleware/error-handler";
 import notFoundMiddleware from "./middleware/not-found";
 
 const PORT = process.env.PORT || 8000;
 
 const app = express();
+export { app }; // Export the Express app for Socket.IO integration
 
 app.set("trust proxy", 1);
 app.use(
   rateLimit({
-    windowMs: 15 * 60 * 1000, //15 mins
-    max: 100, //limit each ip to 100 requests per windowsMs
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
   })
 );
 
@@ -28,13 +26,13 @@ app.use(helmet());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req: any, res: any) => {
+app.get("/", (req, res) => {
   res.send(
     `E-learn APIs  <p>Checkout the <a href="https://documenter.getpostman.com/view/31014226/2sA3Bt3VVm#19978277-2621-4a96-abe2-dc9430f6fa06">E-learn APIs Documentation</a></p>`
   );
-
 });
 
+// Import your routes
 import userRoute from "./routes/user";
 import courseRoute from "./routes/course";
 import paymentRoute from "./routes/payment";
@@ -49,16 +47,3 @@ app.use("/notification", notificationRoute);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);
-
-const start = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI as string);
-    app.listen(PORT, () => {
-      console.log(`server is running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-start();

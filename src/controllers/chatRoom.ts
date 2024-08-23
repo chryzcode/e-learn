@@ -1,10 +1,8 @@
-import cloudinary from "cloudinary";
 import { StatusCodes } from "http-status-codes";
 import { courseRoom, roomMessage } from "../models/chatRoom";
 import { courseStudent } from "../models/course";
 import { User } from "../models/user";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
-import { isImage } from "../utils/mediaType";
 import { io } from "../utils/socket";
 
 export const userRooms = async (req: any, res: any) => {
