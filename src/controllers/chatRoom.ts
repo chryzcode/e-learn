@@ -97,7 +97,7 @@ export const getAChatRoom = async (req: any, res: any) => {
       select: "thumbnail title", // Fields to include from the course
       populate: {
         path: "instructor", // Populate the instructor field in the course
-        select: "name email", // Specify the fields you want to include from the instructor
+        select: "fullName", // Specify the fields you want to include from the instructor
       },
     });
 
