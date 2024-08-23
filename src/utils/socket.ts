@@ -20,7 +20,7 @@ const io = new Server(httpServer, {
 io.on("connection", socket => {
   console.log("A client connected");
 
-  socket.on("joinRoom", async (courseId: string, userId: string) => {
+  socket.on("joinRoom", async (courseId, userId) => {
     const room = await courseRoom.findOne({ course: courseId });
     const user = await User.findOne({ _id: userId });
     if (room) {
@@ -31,6 +31,10 @@ io.on("connection", socket => {
 
       // Broadcast when a user connects to everyone except the newly joined client
       socket.broadcast.to(room.id).emit("joinRoom", `${user?.fullName} just joined the chat room`);
+
+      // Send all existing messages to the newly joined user
+      const messages = await roomMessage.find({ room: room.id }).populate("sender");
+      socket.emit("roomMessages", messages);
     }
   });
 
@@ -45,16 +49,49 @@ io.on("connection", socket => {
         sender: sender,
       });
 
-      // Emit the message to all clients in the room
-      io.to(roomId).emit("roomMessages", [newMessage]);
+      // Fetch the latest messages for all clients
+      const messages = await roomMessage.find({ room: roomId }).populate("sender");
+
+      // Emit the updated list of messages to all clients in the room
+      io.to(roomId).emit("roomMessages", messages);
     }
   });
 
-  socket.on("removeUser", async (userId: string, roomId: string) => {
+  socket.on("editMessage", async messageData => {
+    const { messageId, roomId, updatedMessage } = messageData;
+    const message = await roomMessage
+      .findOneAndUpdate(
+        { _id: messageId, room: roomId },
+        { message: updatedMessage },
+        { new: true, runValidators: true }
+      )
+      .populate("sender");
+
+    if (message) {
+      // Fetch the latest messages for all clients
+      const messages = await roomMessage.find({ room: roomId }).populate("sender");
+
+      // Emit the updated list of messages to all clients in the room
+      io.to(roomId).emit("roomMessages", messages);
+    }
+  });
+
+  socket.on("deleteMessage", async messageData => {
+    const { messageId, roomId } = messageData;
+    await roomMessage.findOneAndDelete({ _id: messageId, room: roomId });
+
+    // Fetch the latest messages for all clients
+    const messages = await roomMessage.find({ room: roomId }).populate("sender");
+
+    // Emit the updated list of messages to all clients in the room
+    io.to(roomId).emit("roomMessages", messages);
+  });
+
+  socket.on("removeUser", async (userId, roomId) => {
     const user = await User.findOne({ _id: userId });
-    const room = await courseRoom.findOne({ _id: roomId });
+    const room = await courseRoom.findOneAndUpdate({ _id: roomId }, { $pull: { users: userId } }, { new: true });
     if (room && user) {
-      socket.broadcast.to(room.id).emit("message", `${user.fullName} was removed from the chat room`);
+      io.to(room.id).emit("message", `${user.fullName} was removed from the chat room`);
     }
   });
 
