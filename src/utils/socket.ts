@@ -41,7 +41,7 @@ io.on("connection", socket => {
       // Save the message to the database
       const newMessage = await roomMessage.create({
         room: roomId,
-        content: message,
+        message: message,
         sender: sender,
       });
 
