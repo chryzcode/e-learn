@@ -22,9 +22,6 @@ const roomMessageSchema = new mongoose.Schema(
       type: String,
       required: [true, "message field is required"],
     },
-    media: {
-      type: String,
-    },
   },
   {
     timestamps: true,
