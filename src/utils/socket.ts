@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { app } from "../app"; // Import the Express app
 import { User } from "../models/user";
 import { courseRoom } from "../models/chatRoom";
+import { roomMessage } from "../models/chatRoom"; // Import your roomMessage model
 
 // Create an HTTP server from the Express app
 const httpServer = createServer(app);
@@ -30,6 +31,22 @@ io.on("connection", socket => {
 
       // Broadcast when a user connects to everyone except the newly joined client
       socket.broadcast.to(room.id).emit("joinRoom", `${user?.fullName} just joined the chat room`);
+    }
+  });
+
+  socket.on("sendMessage", async messageData => {
+    const { roomId, message, sender } = messageData;
+    const room = await courseRoom.findOne({ _id: roomId });
+    if (room) {
+      // Save the message to the database
+      const newMessage = await roomMessage.create({
+        room: roomId,
+        content: message,
+        sender: sender,
+      });
+
+      // Emit the message to all clients in the room
+      io.to(roomId).emit("roomMessages", [newMessage]);
     }
   });
 
