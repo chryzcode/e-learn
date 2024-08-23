@@ -88,6 +88,25 @@ export const leaveRoom = async (req: any, res: any) => {
   res.status(StatusCodes.OK).json({ success: "you have successfully left the room" });
 };
 
+
+export const getAChatRoom = async (req: any, res: any) => {
+  const { roomId } = req.params;
+    // Find the chat room and populate the course details, including thumbnail and title
+    const room = await courseRoom.findById(roomId).populate({
+      path: "course", // Path to the course reference in the room schema
+      select: "thumbnail title", // Fields to include from the course
+      populate: {
+        path: "instructor", // Populate the instructor field in the course
+        select: "name email", // Specify the fields you want to include from the instructor
+      },
+    });
+
+    if (!room) {
+      return res.status(StatusCodes.NOT_FOUND).json({ message: "Room does not exist" });
+    }
+
+    res.status(StatusCodes.OK).json({ room });
+};
 export const inviteUserToRoom = async (req: any, res: any) => {
   const { roomId, userId } = req.params;
   const room = await courseRoom.findOne({ _id: roomId });
