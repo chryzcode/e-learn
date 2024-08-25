@@ -9,6 +9,7 @@ import {
   inviteUserToRoom,
   removeUser,
   getAChatRoom,
+  getAChatRoomByCourseId,
 } from "../controllers/chatRoom";
 import authenticateUser from "../middleware/authentication";
 import authenticateInstructor from "../middleware/instructor";
@@ -20,6 +21,7 @@ router.route("/message/:roomId").get(authenticateUser, roomMessages).post(authen
 router.route("/:roomId/message/:messageId").put(authenticateUser, editMessage).delete(authenticateUser, deleteMessage);
 router.route("/:roomId/exit").post(authenticateUser, leaveRoom);
 router.route("/get-room/:roomId").get(getAChatRoom);
+router.route("/get-room/course/:roomId").get(getAChatRoomByCourseId);
 router.route("/:roomId/invite/:userId").post(authenticateUser, authenticateInstructor, inviteUserToRoom);
 router.route("/:roomId/remove/:userId").post(authenticateUser, authenticateInstructor, removeUser);
 
