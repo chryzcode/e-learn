@@ -110,14 +110,7 @@ export const getAChatRoom = async (req: any, res: any) => {
 export const getAChatRoomByCourseId = async (req: any, res: any) => {
   const { courseId } = req.params;
   // Find the chat room and populate the course details, including thumbnail and title
-  const room = await courseRoom.findOne({ course: courseId }).populate({
-    path: "course", // Path to the course reference in the room schema
-    select: "thumbnail title", // Fields to include from the course
-    populate: {
-      path: "instructor", // Populate the instructor field in the course
-      select: "fullName", // Specify the fields you want to include from the instructor
-    },
-  });
+  const room = await courseRoom.findOne({ course: courseId });
 
   if (!room) {
     return res.status(StatusCodes.NOT_FOUND).json({ message: "Room does not exist" });
