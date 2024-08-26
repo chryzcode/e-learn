@@ -23,14 +23,9 @@ io.on("connection", socket => {
   socket.on("joinRoom", async (courseId, userId) => {
     const room = await courseRoom.findOne({ course: courseId });
     const user = await User.findOne({ _id: userId });
+
     if (room) {
       socket.join(room.id);
-
-      // Welcome message only for the current user
-      socket.emit("message", `Welcome! ${user?.fullName}`);
-
-      // Broadcast when a user connects to everyone except the newly joined client
-      socket.broadcast.to(room.id).emit("joinRoom", `${user?.fullName} just joined the chat room`);
 
       // Send all existing messages to the newly joined user
       const messages = await roomMessage.find({ room: room.id }).populate("sender");
@@ -76,22 +71,41 @@ io.on("connection", socket => {
     }
   });
 
+  // When a message is deleted
   socket.on("deleteMessage", async messageData => {
     const { messageId, roomId } = messageData;
-    await roomMessage.findOneAndDelete({ _id: messageId, room: roomId });
+    const deletedMessage = await roomMessage.findOneAndDelete({ _id: messageId, room: roomId });
 
     // Fetch the latest messages for all clients
     const messages = await roomMessage.find({ room: roomId }).populate("sender");
 
     // Emit the updated list of messages to all clients in the room
     io.to(roomId).emit("roomMessages", messages);
+
+    // Emit delete message announcement
+    if (deletedMessage) {
+      const user = await User.findOne({ _id: deletedMessage.sender });
+      const userName = user ? user.fullName : "Unknown User";
+
+      io.to(roomId).emit("announcement", {
+        type: "messageDeleted",
+        message: `${userName} deleted a message`,
+        timestamp: new Date().toISOString(),
+      });
+    }
   });
 
   socket.on("removeUser", async (userId, roomId) => {
     const user = await User.findOne({ _id: userId });
     const room = await courseRoom.findOneAndUpdate({ _id: roomId }, { $pull: { users: userId } }, { new: true });
+
     if (room && user) {
-      io.to(room.id).emit("message", `${user.fullName} was removed from the chat room`);
+      io.to(room.id).emit("announcement", {
+        type: "userRemoved",
+        message: `${user.fullName} was removed from the chat room`,
+        userId: userId,
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 

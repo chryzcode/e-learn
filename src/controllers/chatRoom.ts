@@ -123,17 +123,30 @@ export const inviteUserToRoom = async (req: any, res: any) => {
   const { roomId, userId } = req.params;
   const room = await courseRoom.findOne({ _id: roomId });
   const isStudent = await courseStudent.findOne({ course: room?.course, student: userId });
+  const user = await User.findOne({ _id: userId });
+
   if (!room) {
     throw new NotFoundError(`Room does not exist`);
   }
   if (!isStudent) {
-    throw new BadRequestError(`You can not add a user who has not registered for the course`);
+    throw new BadRequestError(`You cannot add a user who has not registered for the course`);
   }
   if (room.users.includes(userId)) {
     throw new BadRequestError(`User is already in the room`);
   }
+
+  // Update the room with the new user
   await courseRoom.findOneAndUpdate({ _id: roomId }, { $push: { users: userId } }, { new: true });
-  res.status(StatusCodes.OK).json({ success: "you have successfully joined the room" });
+
+  // Notify all users in the room via Socket.IO
+  io.to(roomId).emit("announcement", {
+    type: "userJoined",
+    message: `${user?.fullName} has joined the chat room`, // Consider using a function to get user full name
+    userId: userId,
+    timestamp: new Date().toISOString(),
+  });
+
+  res.status(StatusCodes.OK).json({ success: "You have successfully joined the room" });
 };
 
 export const removeUser = async (req: any, res: any) => {

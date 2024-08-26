@@ -275,7 +275,10 @@ export const courseStudents = async (req: any, res: any) => {
   if (!course) {
     throw new NotFoundError(`Course does not exist`);
   }
-  const students = await courseStudent.find({ course: course._id });
+  const students = await courseStudent.find({ course: course._id }).populate({
+    path: "student",
+    select: "fullName avatar",
+  });
   res.status(StatusCodes.OK).json({ students });
 };
 
