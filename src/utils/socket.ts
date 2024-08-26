@@ -54,16 +54,18 @@ io.on("connection", socket => {
 
   socket.on("editMessage", async messageData => {
     const { messageId, roomId, updatedMessage } = messageData;
+
+    // Update the message content and set the edited flag to true
     const message = await roomMessage
       .findOneAndUpdate(
         { _id: messageId, room: roomId },
-        { message: updatedMessage },
+        { message: updatedMessage, edited: true },
         { new: true, runValidators: true }
       )
       .populate("sender");
 
     if (message) {
-      // Fetch the latest messages for all clients
+      // Fetch the latest messages for the room
       const messages = await roomMessage.find({ room: roomId }).populate("sender");
 
       // Emit the updated list of messages to all clients in the room
