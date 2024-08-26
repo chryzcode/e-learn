@@ -22,12 +22,16 @@ const roomMessageSchema = new mongoose.Schema(
       type: String,
       required: [true, "message field is required"],
     },
+
+    edited: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
-
 
 export const courseRoom = mongoose.model("courseRoom", courseRoomSchema);
 export const roomMessage = mongoose.model("roomMessage", roomMessageSchema);
