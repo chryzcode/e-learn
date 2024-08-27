@@ -1,3 +1,5 @@
+// In your server file (likely app.js or similar)
+
 import { Server } from "socket.io";
 import { createServer } from "http";
 import { app } from "../app"; // Import the Express app
@@ -109,19 +111,6 @@ io.on("connection", socket => {
         userId: userId,
         timestamp: new Date().toISOString(),
       });
-    }
-  });
-
-  // **New Socket Event to Get Room Messages**
-  socket.on("getRoomMessages", async roomId => {
-    try {
-      // Fetch all messages for the specified room
-      const messages = await roomMessage.find({ room: roomId }).populate("sender");
-
-      // Emit the list of messages back to the client
-      socket.emit("roomMessages", messages);
-    } catch (error) {
-      console.error("Error fetching room messages:", error);
     }
   });
 
