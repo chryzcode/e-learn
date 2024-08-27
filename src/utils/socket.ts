@@ -20,6 +20,7 @@ const io = new Server(httpServer, {
 io.on("connection", socket => {
   console.log("A client connected");
 
+  // Join Room
   socket.on("joinRoom", async (courseId, userId) => {
     const room = await courseRoom.findOne({ course: courseId });
     const user = await User.findOne({ _id: userId });
@@ -33,6 +34,7 @@ io.on("connection", socket => {
     }
   });
 
+  // Send Message
   socket.on("sendMessage", async messageData => {
     const { roomId, message, sender } = messageData;
     const room = await courseRoom.findOne({ _id: roomId });
@@ -52,6 +54,7 @@ io.on("connection", socket => {
     }
   });
 
+  // Edit Message
   socket.on("editMessage", async messageData => {
     const { messageId, roomId, updatedMessage } = messageData;
 
@@ -73,7 +76,7 @@ io.on("connection", socket => {
     }
   });
 
-  // When a message is deleted
+  // Delete Message
   socket.on("deleteMessage", async messageData => {
     const { messageId, roomId } = messageData;
     const deletedMessage = await roomMessage.findOneAndDelete({ _id: messageId, room: roomId });
@@ -97,6 +100,7 @@ io.on("connection", socket => {
     }
   });
 
+  // Remove User
   socket.on("removeUser", async (userId, roomId) => {
     const user = await User.findOne({ _id: userId });
     const room = await courseRoom.findOneAndUpdate({ _id: roomId }, { $pull: { users: userId } }, { new: true });
@@ -108,6 +112,19 @@ io.on("connection", socket => {
         userId: userId,
         timestamp: new Date().toISOString(),
       });
+    }
+  });
+
+  // **New Socket Event to Get Room Messages**
+  socket.on("getRoomMessages", async roomId => {
+    try {
+      // Fetch all messages for the specified room
+      const messages = await roomMessage.find({ room: roomId }).populate("sender");
+
+      // Emit the list of messages back to the client
+      socket.emit("roomMessages", messages);
+    } catch (error) {
+      console.error("Error fetching room messages:", error);
     }
   });
 
