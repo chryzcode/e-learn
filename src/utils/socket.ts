@@ -46,11 +46,11 @@ io.on("connection", socket => {
         sender: sender,
       });
 
-      // Fetch the latest messages for all clients
-      const messages = await roomMessage.find({ room: roomId }).populate("sender");
+      // Populate the sender data for the new message
+      await newMessage.populate("sender");
 
-      // Emit the updated list of messages to all clients in the room
-      io.to(roomId).emit("roomMessages", messages);
+      // Emit the new message to all clients in the room
+      io.to(roomId).emit("newMessage", newMessage);
     }
   });
 
@@ -68,11 +68,8 @@ io.on("connection", socket => {
       .populate("sender");
 
     if (message) {
-      // Fetch the latest messages for the room
-      const messages = await roomMessage.find({ room: roomId }).populate("sender");
-
-      // Emit the updated list of messages to all clients in the room
-      io.to(roomId).emit("roomMessages", messages);
+      // Emit the updated message to all clients in the room
+      io.to(roomId).emit("updatedMessage", message);
     }
   });
 
