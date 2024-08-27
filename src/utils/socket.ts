@@ -1,3 +1,5 @@
+// In your server file (likely app.js or similar)
+
 import { Server } from "socket.io";
 import { createServer } from "http";
 import { app } from "../app"; // Import the Express app
@@ -46,11 +48,11 @@ io.on("connection", socket => {
         sender: sender,
       });
 
-      // Fetch the latest messages for all clients
-      const messages = await roomMessage.find({ room: roomId }).populate("sender");
+      // Populate the sender data for the new message
+      await newMessage.populate("sender");
 
-      // Emit the updated list of messages to all clients in the room
-      io.to(roomId).emit("roomMessages", messages);
+      // Emit the new message to all clients in the room
+      io.to(roomId).emit("newMessage", newMessage);
     }
   });
 
@@ -68,11 +70,8 @@ io.on("connection", socket => {
       .populate("sender");
 
     if (message) {
-      // Fetch the latest messages for the room
-      const messages = await roomMessage.find({ room: roomId }).populate("sender");
-
-      // Emit the updated list of messages to all clients in the room
-      io.to(roomId).emit("roomMessages", messages);
+      // Emit the updated message to all clients in the room
+      io.to(roomId).emit("updatedMessage", message);
     }
   });
 
@@ -112,19 +111,6 @@ io.on("connection", socket => {
         userId: userId,
         timestamp: new Date().toISOString(),
       });
-    }
-  });
-
-  // **New Socket Event to Get Room Messages**
-  socket.on("getRoomMessages", async roomId => {
-    try {
-      // Fetch all messages for the specified room
-      const messages = await roomMessage.find({ room: roomId }).populate("sender");
-
-      // Emit the list of messages back to the client
-      socket.emit("roomMessages", messages);
-    } catch (error) {
-      console.error("Error fetching room messages:", error);
     }
   });
 
