@@ -5,6 +5,22 @@ import { User } from "../models/user";
 import { BadRequestError, UnauthenticatedError, NotFoundError } from "../errors/index";
 import { io } from "../utils/socket";
 
+export const createAnnouncement = async (roomId: any, message: any, sender: any) => {
+  // Create the announcement message and populate the sender field
+  const announcement = await roomMessage.create({
+    room: roomId,
+    message,
+    sender,
+    isAnnouncement: true,
+  });
+
+  // Populate the sender field
+  await announcement.populate("sender");
+
+  // Return the populated announcement
+  return announcement;
+};
+
 export const userRooms = async (req: any, res: any) => {
   const { userId } = req.user;
   const rooms = await courseRoom
@@ -138,13 +154,11 @@ export const inviteUserToRoom = async (req: any, res: any) => {
   // Update the room with the new user
   await courseRoom.findOneAndUpdate({ _id: roomId }, { $push: { users: userId } }, { new: true });
 
-  // Notify all users in the room via Socket.IO
-  io.to(roomId).emit("announcement", {
-    type: "userJoined",
-    message: `${user?.fullName} has joined the chat room`, // Consider using a function to get user full name
-    userId: userId,
-    timestamp: new Date().toISOString(),
-  });
+  const announcementMessage = `${user?.fullName} has joined the chat room`;
+  const announcement = await createAnnouncement(roomId, announcementMessage, user);
+
+  // Emit the announcement message to all clients in the room
+  io.to(roomId).emit("newMessage", announcement);
 
   res.status(StatusCodes.OK).json({ success: "You have successfully joined the room" });
 };
