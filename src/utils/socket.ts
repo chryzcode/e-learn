@@ -4,6 +4,7 @@ import { app } from "../app"; // Import the Express app
 import { User } from "../models/user";
 import { courseRoom } from "../models/chatRoom";
 import { roomMessage } from "../models/chatRoom"; // Import your roomMessage model
+import { createAnnouncement } from "../controllers/chatRoom";
 
 // Create an HTTP server from the Express app
 const httpServer = createServer(app);
@@ -20,41 +21,22 @@ const io = new Server(httpServer, {
 io.on("connection", socket => {
   console.log("A client connected");
 
-  // Join Room
   socket.on("joinRoom", async (courseId, userId) => {
     const room = await courseRoom.findOne({ course: courseId });
-    const user = await User.findOne({ _id: userId });
-
     if (room) {
       socket.join(room.id);
-
-      // Send all existing messages to the newly joined user
       const messages = await roomMessage.find({ room: room.id }).populate("sender");
       socket.emit("roomMessages", messages);
     }
   });
 
-  // Send Message
   socket.on("sendMessage", async messageData => {
     const { roomId, message, sender } = messageData;
-    const room = await courseRoom.findOne({ _id: roomId });
-    if (room) {
-      // Save the message to the database
-      const newMessage = await roomMessage.create({
-        room: roomId,
-        message: message,
-        sender: sender,
-      });
-
-      // Populate the sender data for the new message
-      await newMessage.populate("sender");
-
-      // Emit the new message to all clients in the room
-      io.to(roomId).emit("newMessage", newMessage);
-    }
+    const newMessage = await roomMessage.create({ room: roomId, message, sender });
+    await newMessage.populate("sender");
+    console.log("Emitting newMessage:", newMessage);
+    io.to(roomId).emit("newMessage", newMessage);
   });
-
-  
 
   // Edit Message
   socket.on("editMessage", async messageData => {
@@ -75,56 +57,54 @@ io.on("connection", socket => {
     }
   });
 
-  // Delete Message
   socket.on("deleteMessage", async messageData => {
-    const { messageId, roomId } = messageData;
-    const deletedMessage = await roomMessage.findOneAndDelete({ _id: messageId, room: roomId });
+    try {
+      const { messageId, roomId } = messageData;
+      const deletedMessage = await roomMessage.findOneAndDelete({ _id: messageId, room: roomId });
 
-    // Fetch the latest messages for all clients
-    const messages = await roomMessage.find({ room: roomId }).populate("sender");
+      const messages = await roomMessage.find({ room: roomId }).populate("sender");
+      io.to(roomId).emit("roomMessages", messages);
 
-    // Emit the updated list of messages to all clients in the room
-    io.to(roomId).emit("roomMessages", messages);
+      if (deletedMessage) {
+        const user = await User.findOne({ _id: deletedMessage.sender });
+        const userName = user?.fullName;
+        const announcementMessage = `${userName} deleted a message`;
+        const announcement = await createAnnouncement(roomId, announcementMessage, user);
 
-    // Emit delete message announcement
-    if (deletedMessage) {
-      const user = await User.findOne({ _id: deletedMessage.sender });
-      const userName = user ? user.fullName : "Unknown User";
-
-      io.to(roomId).emit("announcement", {
-        type: "messageDeleted",
-        message: `${userName} deleted a message`,
-        timestamp: new Date().toISOString(),
-      });
+        // Emit the announcement message to all clients in the room
+        io.to(roomId).emit("newMessage", announcement);
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   });
 
   // Remove User
-  socket.on("removeUser", async (userId, roomId) => {
+ socket.on("removeUser", async (userId, roomId) => {
+  try {
     const user = await User.findOne({ _id: userId });
     const room = await courseRoom.findOneAndUpdate({ _id: roomId }, { $pull: { users: userId } }, { new: true });
 
     if (room && user) {
-      io.to(room.id).emit("announcement", {
-        type: "userRemoved",
-        message: `${user.fullName} was removed from the chat room`,
-        userId: userId,
-        timestamp: new Date().toISOString(),
-      });
+      const announcementMessage = `${user.fullName} was removed from the chat room`;
+      const announcement = await createAnnouncement(room.id, announcementMessage, user);
+
+      // Emit the announcement message to all clients in the room
+      io.to(roomId).emit("newMessage", announcement);
     }
-  });
+  } catch (error) {
+    console.error("Error removing user:", error);
+  }
+});
+
 
   // **New Socket Event to Get Room Messages**
   socket.on("getRoomMessages", async roomId => {
-    try {
-      // Fetch all messages for the specified room
-      const messages = await roomMessage.find({ room: roomId }).populate("sender");
+    // Fetch all messages for the specified room
+    const messages = await roomMessage.find({ room: roomId }).populate("sender");
 
-      // Emit the list of messages back to the client
-      socket.emit("roomMessages", messages);
-    } catch (error) {
-      console.error("Error fetching room messages:", error);
-    }
+    // Emit the list of messages back to the client
+    socket.emit("roomMessages", messages);
   });
 
   // Handle disconnections

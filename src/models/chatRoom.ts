@@ -27,6 +27,11 @@ const roomMessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    isAnnouncement: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
