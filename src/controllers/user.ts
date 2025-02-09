@@ -18,11 +18,21 @@ const refreshToken = generateRefreshToken(uniqueID);
 
 export const signUp = async (req: any, res: any) => {
   try {
-    const user: any = await User.create({ ...req.body });
+    // Check if user with email already exists
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (existingUser) {
+      return res.status(400).json({ msg: "User with this email is already registered" });
+    }
 
-    const verificationToken = "your_generated_token"; // Replace with actual token logic
+    // Create user with uniqueID
+    const user: any = await User.create({ 
+      ...req.body,
+      uniqueID 
+    });
+
+    // Use the already generated verification token
     const verifyLink = `${FRONTEND_DOMAIN}/auth/verify-account/${user.id}/?token=${encodeURIComponent(
-      verificationToken
+      linkVerificationtoken
     )}`;
 
     const emailContent = `<p>Please use the following <a href="${verifyLink}">link</a> to verify your account. Link expires in 10 mins.</p>`;
@@ -32,8 +42,12 @@ export const signUp = async (req: any, res: any) => {
     const token = user.createJWT();
 
     res.status(201).json({
-      user: { fullName: user.fullName },
+      user: { 
+        fullName: user.fullName,
+        uniqueID: user.uniqueID
+      },
       token,
+      refreshToken,
       msg: "Check your mail for account verification",
     });
   } catch (error) {
