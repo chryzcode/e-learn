@@ -1,12 +1,29 @@
 import "dotenv/config";
-import nodemailer from "nodemailer";
+import axios from "axios";
 
-export const transporter = nodemailer.createTransport({
-  port: 465, // true for 465, false for other ports
-  host: "smtp.gmail.com",
-  auth: {
-    user: process.env.Email_User,
-    pass: process.env.Email_Password,
-  },
-  secure: true,
-});
+
+export const sendEmail = async (to: string, subject: string, htmlContent: string) => {
+  try {
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: { name: "Alaba Olanrewaju - E-Learn", email: process.env.BREVO_SENDER },
+        to: [{ email: to }],
+        subject,
+        htmlContent,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "api-key": process.env.BREVO_API_KEY!,
+        },
+      }
+    );
+
+    console.log("Email sent successfully:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error sending email:", error.response?.data || error.message);
+    throw new Error("Failed to send email");
+  }
+};
